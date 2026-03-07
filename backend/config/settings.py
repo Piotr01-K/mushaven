@@ -37,8 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'rest_framework',
+    
     # aplikacje projektu MusHaven
     'apps.music',
+    'apps.accounts',
+    'apps.playlists',
+    'apps.core',
 ]
 
 MIDDLEWARE = [
