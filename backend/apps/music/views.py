@@ -6,7 +6,12 @@ from rest_framework import viewsets
 
 from .models import Genre, Artist, Album, Song
 from .serializers import GenreSerializer, ArtistSerializer, AlbumSerializer, SongSerializer
+from django.db.models import Count
 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+from apps.playlists.models import PlaylistSong
 
 # ======================================================
 # API: Genres
@@ -46,3 +51,25 @@ class SongViewSet(viewsets.ModelViewSet):
     queryset = Song.objects.all()
 
     serializer_class = SongSerializer
+
+
+# ======================================================
+# API: Top songs
+# ======================================================
+
+@api_view(["GET"])
+def top_songs(request):
+    """
+    Zwraca listę najpopularniejszych piosenek.
+
+    Popularność = ile razy piosenka została dodana do playlist.
+    """
+
+    songs = (
+        PlaylistSong.objects
+        .values("song__title")
+        .annotate(count=Count("song"))
+        .order_by("-count")[:10]
+    )
+
+    return Response(songs)
