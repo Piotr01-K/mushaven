@@ -40,9 +40,9 @@ INSTALLED_APPS = [
 
     'rest_framework',
 
-    # wypełnia bazę danymi o piosenkach 
-    'django_seed',
+    'django_seed', # wypełnia bazę danymi o piosenkach
     'djoser',
+    'drf_spectacular',
     
     # aplikacje projektu MusHaven
     'apps.music',
@@ -132,6 +132,16 @@ REST_FRAMEWORK = {
 
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+
+}
+
+SPECTACULAR_SETTINGS = {
+
+    'TITLE': 'MusHaven API',
+    'DESCRIPTION': 'Portal muzyczny API',
+    'VERSION': '1.0.0',
 
 }
