@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'django_seed', # wypełnia bazę danymi o piosenkach
     'djoser',
     'drf_spectacular',
+
+    'django_celery_beat',
     
     # aplikacje projektu MusHaven
     'apps.music',
@@ -160,3 +162,7 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 
 CELERY_TIMEZONE = "Europe/Warsaw"
+
+
+
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"

@@ -4,11 +4,22 @@
 from django.contrib import admin
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from django.http import JsonResponse
 
+def api_root(request):
+
+    return JsonResponse({
+        "music": "/api/music/",
+        "playlists": "/api/playlists/",
+        "auth": "/auth/",
+        "docs": "/api/docs/",
+    })
 
 urlpatterns = [
 
     path('admin/', admin.site.urls),
+
+    path("api/", api_root),
 
     path('api/music/', include('apps.music.urls')),
     path('api/playlists/', include('apps.playlists.urls')),

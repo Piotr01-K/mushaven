@@ -76,3 +76,23 @@ class Song(models.Model):
 
     def __str__(self):
         return self.title
+    
+
+# ======================================================
+# Popularność utworów
+# ======================================================
+
+class SongPopularity(models.Model):
+
+    song = models.OneToOneField(
+        "Song",
+        on_delete=models.CASCADE,
+        related_name="popularity"
+    )
+
+    score = models.IntegerField(default=0)
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.song.title} popularity: {self.score}"
