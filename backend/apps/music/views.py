@@ -73,3 +73,27 @@ def top_songs(request):
     )
 
     return Response(songs)
+
+
+@api_view(["GET"])
+def recommendations(request, song_id):
+
+    try:
+
+        song = Song.objects.get(id=song_id)
+
+    except Song.DoesNotExist:
+
+        return Response({"error": "Song not found"})
+
+    genre = song.album.artist.genre
+
+    songs = Song.objects.filter(
+        album__artist__genre=genre
+    ).exclude(
+        id=song.id
+    )[:10]
+
+    serializer = SongSerializer(songs, many=True)
+
+    return Response(serializer.data)

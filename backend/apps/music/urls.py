@@ -5,6 +5,7 @@ from rest_framework.routers import DefaultRouter
 
 from .views import GenreViewSet, ArtistViewSet, AlbumViewSet, SongViewSet
 from .views import top_songs
+from .views import recommendations
 
 router = DefaultRouter()
 
@@ -17,5 +18,6 @@ router.register(r'songs', SongViewSet)
 urlpatterns = router.urls + [
 
     path("top-songs/", top_songs),
+    path("recommendations/<int:song_id>/", recommendations),
 
 ]
