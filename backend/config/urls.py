@@ -5,6 +5,7 @@ from django.contrib import admin
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from django.http import JsonResponse
+from apps.core.views import stats  # endpoint statystyk 
 
 def api_root(request):
 
@@ -23,6 +24,8 @@ urlpatterns = [
 
     path('api/music/', include('apps.music.urls')),
     path('api/playlists/', include('apps.playlists.urls')),
+
+    path("api/stats/", stats),
 
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.jwt')),
