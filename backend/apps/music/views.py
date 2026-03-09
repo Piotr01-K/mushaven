@@ -6,12 +6,13 @@ from rest_framework import viewsets
 
 from .models import Genre, Artist, Album, Song
 from .serializers import GenreSerializer, ArtistSerializer, AlbumSerializer, SongSerializer
-from django.db.models import Count
+from django.db.models import Count, Q
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from apps.playlists.models import PlaylistSong
+
 
 # ======================================================
 # API: Genres
@@ -97,3 +98,29 @@ def recommendations(request, song_id):
     serializer = SongSerializer(songs, many=True)
 
     return Response(serializer.data)
+
+@api_view(["GET"])
+def search_music(request):
+
+    query = request.GET.get("q")
+
+    if not query:
+        return Response({"error": "Query parameter 'q' required"})
+
+    artists = Artist.objects.filter(
+        pseudonym__icontains=query
+    )[:5]
+
+    albums = Album.objects.filter(
+        title__icontains=query
+    )[:5]
+
+    songs = Song.objects.filter(
+        title__icontains=query
+    )[:5]
+
+    return Response({
+        "artists": ArtistSerializer(artists, many=True).data,
+        "albums": AlbumSerializer(albums, many=True).data,
+        "songs": SongSerializer(songs, many=True).data,
+    })
