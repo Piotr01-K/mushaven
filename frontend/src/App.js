@@ -8,6 +8,7 @@ function App() {
   const [stats, setStats] = useState(null);
   const [albums, setAlbums] = useState([]);
   const [selectedArtist, setSelectedArtist] = useState(null);
+  const [selectedAlbum, setSelectedAlbum] = useState(null);
 
   useEffect(() => {
 
@@ -68,8 +69,8 @@ function App() {
             key={artist.id}
             style={{ cursor: "pointer" }}
             onClick={() => {
-              console.log("CLICKED ARTIST:", artist.id);
-              setSelectedArtist(artist.id);
+              setSelectedArtist(artist.id)
+              setSelectedAlbum(null)   // resetujemy poprzedni album
             }}
           >
             {artist.pseudonym}
@@ -77,21 +78,42 @@ function App() {
         ))}
       </ul>
 
-      {selectedArtist && (
+      {selectedArtist && (                // jeśli użytkownik kliknął artystę
         <>
           <h2>Albums</h2>
 
           <ul>
             {albums
               .filter(album => Number(album.artist) === selectedArtist)   // dodałem "Number" aby klikanie działało
-              .map(album => (
-                <li key={album.id}>
+              .map(album => (                                             //  filtrowanie albumów artystów,
+                <li 
+                  key={album.id}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => setSelectedAlbum(album.id)}  // dodałem "klikalność" albumów, zapisujemy ID klikniętego albumu do state React
+                >
                   {album.title}
                 </li>
               ))}
           </ul>
         </>
       )}
+
+      {selectedAlbum && (
+        <>
+          <h2>Album Songs</h2>
+
+          <ul>
+            {songs
+              .filter(song => Number(song.album) === selectedAlbum)     // pokaż utory z albumu
+              .map(song => (
+                <li key={song.id}>
+                  {song.title}
+                </li>
+              ))}
+          </ul>
+        </>
+      )}
+
 
       <h2>All Songs</h2>
 
