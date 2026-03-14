@@ -2,18 +2,36 @@ import React, { useEffect, useState } from "react";
 
 function App() {
 
+  const [topSongs, setTopSongs] = useState([]);
   const [songs, setSongs] = useState([]);
+  const [artists, setArtists] = useState([]);
   const [stats, setStats] = useState(null);
+  const [albums, setAlbums] = useState([]);
+  const [selectedArtist, setSelectedArtist] = useState(null);
 
   useEffect(() => {
 
-    fetch("http://127.0.0.1:8000/api/music/top-songs/")
+    fetch("http://localhost:8000/api/music/top-songs/")   // dlatego localhost bo React działa w przeglądarce a nie w kontenerze
       .then(res => res.json())
-      .then(data => setSongs(data));
+      .then(data => setTopSongs(data));
 
-    fetch("http://127.0.0.1:8000/api/stats/")
+    fetch("http://localhost:8000/api/stats/")
       .then(res => res.json())
       .then(data => setStats(data));
+
+    fetch("http://localhost:8000/api/music/artists/")
+      .then(res => res.json())
+      .then(data => setArtists(data))
+      .catch(error => console.error("Error loading artists:", error));
+
+    fetch("http://localhost:8000/api/music/songs/")
+      .then(res => res.json())
+      .then(data => setSongs(data))
+      .catch(error => console.error("Error loading songs:", error));
+
+    fetch("http://localhost:8000/api/music/albums/")
+      .then(res => res.json())
+      .then(data => setAlbums(data));
 
   }, []);
 
@@ -35,6 +53,49 @@ function App() {
       <h2>Top Songs</h2>
 
       <ul>
+        {topSongs.map(song => (
+          <li key={song.id}>
+            {song.title}
+          </li>
+        ))}
+      </ul>
+
+      <h2>Artists</h2>
+
+      <ul>
+        {artists.map(artist => (
+          <li 
+            key={artist.id}
+            style={{ cursor: "pointer" }}
+            onClick={() => {
+              console.log("CLICKED ARTIST:", artist.id);
+              setSelectedArtist(artist.id);
+            }}
+          >
+            {artist.pseudonym}
+          </li>
+        ))}
+      </ul>
+
+      {selectedArtist && (
+        <>
+          <h2>Albums</h2>
+
+          <ul>
+            {albums
+              .filter(album => Number(album.artist) === selectedArtist)   // dodałem "Number" aby klikanie działało
+              .map(album => (
+                <li key={album.id}>
+                  {album.title}
+                </li>
+              ))}
+          </ul>
+        </>
+      )}
+
+      <h2>All Songs</h2>
+
+      <ul>
         {songs.map(song => (
           <li key={song.id}>
             {song.title}
@@ -45,5 +106,6 @@ function App() {
     </div>
   );
 }
+
 
 export default App;
