@@ -39,29 +39,59 @@ function App() {
   }, []);
 
     // funkcja wywoływana gdy klikniemy przycisk SEARCH
-    const handleSearch = () => {
+    //const handleSearch = () => {
 
     // jeśli pole jest puste – nie wysyłamy zapytania
-    if (!searchQuery.trim()) return;
+    //if (!searchQuery.trim()) return;
 
     // wysyłamy request do backendu
-    fetch(`http://localhost:8000/api/music/search/?q=${searchQuery}`)
-      .then(res => res.json())
-      .then(data => {
+    //fetch(`http://localhost:8000/api/music/search/?q=${searchQuery}`)
+    //  .then(res => res.json())
+    //  .then(data => {
 
          // łączymy wszystkie wyniki w jedną listę
-         const combinedResults = [
-           ...data.artists,
-           ...data.albums,
-           ...data.songs
-         ];
+    //     const combinedResults = [
+    //       ...data.artists,
+    //       ...data.albums,
+    //       ...data.songs
+    //     ];
 
          // zapisujemy wyniki w stanie React
+    //      setSearchResults(combinedResults);
+
+    //  })
+    //  .catch(error => console.error("Search error:", error));
+    //};
+
+
+    // LIVE SEARCH – uruchamia wyszukiwanie gdy zmienia się tekst - przycisk wyszukiwania nie jest potrzebny!
+    useEffect(() => {
+
+      // nie wysyłamy requestów dla pustego pola
+      if (!searchQuery.trim()) {
+        setSearchResults([]);
+        return;
+      }
+
+      // wysyłamy zapytanie do API
+      fetch(`http://localhost:8000/api/music/search/?q=${searchQuery}`)
+        .then(res => res.json())
+        .then(data => {
+
+          // łączymy wyniki z backendu w jedną listę
+          const combinedResults = [
+            ...data.artists,
+            ...data.albums,
+            ...data.songs
+          ];
+
           setSearchResults(combinedResults);
 
-      })
-      .catch(error => console.error("Search error:", error));
-   };
+        })
+        .catch(error => console.error("Search error:", error));
+
+    }, [searchQuery]);   // uruchamia się gdy zmieni się searchQuery
+
 
   return (
     <div style={{padding:"40px"}}>
@@ -89,17 +119,11 @@ function App() {
         }}
       />
 
-      {/* przycisk uruchamia wyszukiwanie */}
-      <button
-        onClick={handleSearch}
+   
+    
 
-        style={{
-          padding:"10px 20px",
-          cursor:"pointer"
-        }}
-      >
-        Search
-      </button>
+
+
 
     </div>
 
