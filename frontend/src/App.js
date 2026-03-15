@@ -63,38 +63,71 @@ function App() {
 
       <h2>Artists</h2>
 
-      <ul>
+      <div
+        style={{
+          display: "grid",              // grid layout zamiast listy
+          gridTemplateColumns: "repeat(auto-fill, 200px)", // ile kart w rzędzie
+          gap: "15px",                  // odstęp między kartami
+          marginBottom: "30px"
+        }}
+      >
         {artists.map(artist => (
-          <li 
+          <div
             key={artist.id}
-            style={{ cursor: "pointer" }}
+
+            style={{
+              border: "1px solid #ddd",      // ramka karty
+              borderRadius: "10px",          // zaokrąglone rogi
+              padding: "20px",
+              cursor: "pointer",
+              background: "#f8f8f8",
+              textAlign: "center",
+              fontWeight: "bold"
+            }}
+
             onClick={() => {
-              setSelectedArtist(artist.id)
-              setSelectedAlbum(null)   // resetujemy poprzedni album
+              setSelectedArtist(artist.id)   // zapisujemy klikniętego artystę
+              setSelectedAlbum(null)         // resetujemy wybrany album
             }}
           >
             {artist.pseudonym}
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
 
       {selectedArtist && (                // jeśli użytkownik kliknął artystę
         <>
           <h2>Albums</h2>
 
-          <ul>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, 200px)",
+              gap: "15px",
+              marginBottom: "30px"
+            }}
+          >
             {albums
-              .filter(album => Number(album.artist) === selectedArtist)   // dodałem "Number" aby klikanie działało
-              .map(album => (                                             //  filtrowanie albumów artystów,
-                <li 
+              .filter(album => Number(album.artist) === selectedArtist)  // tylko albumy wybranego artysty
+              .map(album => (
+                <div
                   key={album.id}
-                  style={{ cursor: "pointer" }}
-                  onClick={() => setSelectedAlbum(album.id)}  // dodałem "klikalność" albumów, zapisujemy ID klikniętego albumu do state React
+
+                  style={{
+                    border: "1px solid #ddd",
+                    borderRadius: "10px",
+                    padding: "20px",
+                    cursor: "pointer",
+                    background: "#eef6ff",
+                    textAlign: "center"
+                  }}
+
+                  onClick={() => setSelectedAlbum(album.id)}  // zapisujemy wybrany album
                 >
                   {album.title}
-                </li>
+                </div>
               ))}
-          </ul>
+          </div>
         </>
       )}
 
