@@ -9,6 +9,8 @@ function App() {
   const [albums, setAlbums] = useState([]);
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [selectedAlbum, setSelectedAlbum] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");      // przechowuje tekst wpisany w wyszukiwarkę
+  const [searchResults, setSearchResults] = useState([]);    // przechowuje wyniki wyszukiwania z API
 
   useEffect(() => {
 
@@ -36,10 +38,92 @@ function App() {
 
   }, []);
 
+    // funkcja wywoływana gdy klikniemy przycisk SEARCH
+    const handleSearch = () => {
+
+    // jeśli pole jest puste – nie wysyłamy zapytania
+    if (!searchQuery.trim()) return;
+
+    // wysyłamy request do backendu
+    fetch(`http://localhost:8000/api/music/search/?q=${searchQuery}`)
+      .then(res => res.json())
+      .then(data => {
+
+         // łączymy wszystkie wyniki w jedną listę
+         const combinedResults = [
+           ...data.artists,
+           ...data.albums,
+           ...data.songs
+         ];
+
+         // zapisujemy wyniki w stanie React
+          setSearchResults(combinedResults);
+
+      })
+      .catch(error => console.error("Search error:", error));
+   };
+
   return (
     <div style={{padding:"40px"}}>
 
       <h1>MusHaven 🎧</h1>
+
+      <h2>Search</h2>
+
+    <div style={{marginBottom:"30px"}}>
+
+      {/* pole wpisywania tekstu */}
+      <input
+        type="text"
+        placeholder="Search artists, albums, songs..."
+
+        value={searchQuery}
+
+        // zapisujemy tekst wpisany przez użytkownika
+        onChange={(e) => setSearchQuery(e.target.value)}
+
+        style={{
+          padding:"10px",
+          width:"250px",
+          marginRight:"10px"
+        }}
+      />
+
+      {/* przycisk uruchamia wyszukiwanie */}
+      <button
+        onClick={handleSearch}
+
+        style={{
+          padding:"10px 20px",
+          cursor:"pointer"
+        }}
+      >
+        Search
+      </button>
+
+    </div>
+
+
+    {searchResults.length > 0 && (
+
+      <>
+        <h3>Search Results</h3>
+
+        <ul>
+          {searchResults.map(result => (
+
+            <li key={result.id}>
+              {result.title || result.pseudonym}      {/* result.title → dla piosenek i albumów */}
+                                                       {/* result.pseudonym → dla artystów */} 
+            </li>                                     
+
+          ))}
+        </ul>
+
+      </>
+
+    )}
+
 
       {stats && (
         <>
