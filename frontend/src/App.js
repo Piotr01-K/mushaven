@@ -224,15 +224,23 @@ function App() {
             key={artist.id}
 
             style={{
-                borderRadius:"12px",
-                padding:"20px",
-                cursor:"pointer",
-                background:"#1e293b",
-                border:"1px solid #334155",
-                textAlign:"center",
-                fontWeight:"bold",
-                transition:"0.2s",
-                boxShadow:"0 4px 12px rgba(0,0,0,0.3)"
+              borderRadius:"12px",
+              padding:"20px",
+              cursor:"pointer",
+
+              // kluczowy fragment
+              background: Number(selectedArtist) === artist.id
+                ? "#334155"   // aktywny
+                : "#1e293b",  // normalny
+
+              border: Number(selectedArtist) === artist.id
+                ? "2px solid #38bdf8"
+                : "1px solid #334155",
+
+              textAlign:"center",
+              fontWeight:"bold",
+              transition:"0.2s",
+              boxShadow:"0 4px 12px rgba(0,0,0,0.3)"
             }}
 
             onClick={() => {
@@ -242,15 +250,19 @@ function App() {
 
             onMouseEnter={(e) => {
               e.currentTarget.style.transform="scale(1.04)"         // dodaję Hover efekt
-              e.currentTarget.style.background="#334155"          // (po najechaniu myszką karta powiększa się i zmienia kolor) 
+              // tylko jeśli NIE aktywny
+              if (Number(selectedArtist) !== artist.id) {
+               e.currentTarget.style.background="#334155"          // (po najechaniu myszką karta powiększa się i zmienia kolor) 
+              }
             }}
 
             onMouseLeave={(e) => {
               e.currentTarget.style.transform="scale(1)"           // dodaję Hover efekt
-              e.currentTarget.style.background="#1e293b"         // (po najechaniu myszką karta powiększa się i zmienia kolor) 
+              if (Number(selectedArtist) !== artist.id) {
+               e.currentTarget.style.background="#1e293b"         // (po najechaniu myszką karta powiększa się i zmienia kolor) 
+              }
             }}
-
-          >
+        >
             {artist.pseudonym}
           </div>
         ))}
