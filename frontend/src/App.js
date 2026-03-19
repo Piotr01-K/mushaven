@@ -94,11 +94,28 @@ function App() {
 
 
   return (
-    <div style={{padding:"40px"}}>
+    <div style={{
+      padding:"40px",
+      background:"#0f172a",     // granatowo-grafitowy
+      color:"#e5e7eb",          // lekko-biały
+      minHeight:"100vh"
+    }}>
 
-      <h1>MusHaven 🎧</h1>
+      <h1 style={{color:"#38bdf8"}}>MusHaven 🎧</h1>
 
-      <h2>Search</h2>
+    <div style={{
+      padding:"40px",
+      display:"flex",        // włącza układ poziomy
+      gap:"40px",            // odstęp między kolumnami
+      alignItems:"flex-start"
+    }}>
+
+     
+
+      {/* LEWA KOLUMNA – wyszukiwarka */}
+      <div style={{width:"350px"}}>
+
+      <h2 style={{color:"#38bdf8"}}>Search</h2>
 
     <div style={{marginBottom:"30px"}}>
 
@@ -119,14 +136,7 @@ function App() {
         }}
       />
 
-   
-    
-
-
-
-
-    </div>
-
+  </div>
 
     {searchResults.length > 0 && (
 
@@ -136,7 +146,19 @@ function App() {
         <ul>
           {searchResults.map(result => (
 
-            <li key={result.id}>
+            <li
+              key={result.id}
+              style={{
+                borderRadius:"10px",
+                padding:"20px",
+                cursor:"pointer",
+                background:"#242424",
+                border:"1px solid #333",
+                textAlign:"center",
+                fontWeight:"bold",
+                transition:"0.2s"
+              }}
+            >
               {result.title || result.pseudonym}      {/* result.title → dla piosenek i albumów */}
                                                        {/* result.pseudonym → dla artystów */} 
             </li>                                     
@@ -148,6 +170,10 @@ function App() {
 
     )}
 
+  </div>
+
+  {/* PRAWA KOLUMNA – reszta aplikacji */}
+  <div style={{flex:1}}>
 
       {stats && (
         <>
@@ -184,19 +210,32 @@ function App() {
             key={artist.id}
 
             style={{
-              border: "1px solid #ddd",      // ramka karty
-              borderRadius: "10px",          // zaokrąglone rogi
-              padding: "20px",
-              cursor: "pointer",
-              background: "#f8f8f8",
-              textAlign: "center",
-              fontWeight: "bold"
+                borderRadius:"12px",
+                padding:"20px",
+                cursor:"pointer",
+                background:"#1e293b",
+                border:"1px solid #334155",
+                textAlign:"center",
+                fontWeight:"bold",
+                transition:"0.2s",
+                boxShadow:"0 4px 12px rgba(0,0,0,0.3)"
             }}
 
             onClick={() => {
               setSelectedArtist(artist.id)   // zapisujemy klikniętego artystę
               setSelectedAlbum(null)         // resetujemy wybrany album
             }}
+
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform="scale(1.04)"         // dodaję Hover efekt
+              e.currentTarget.style.background="#334155"          // (po najechaniu myszką karta powiększa się i zmienia kolor) 
+            }}
+
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform="scale(1)"           // dodaję Hover efekt
+              e.currentTarget.style.background="#1e293b"         // (po najechaniu myszką karta powiększa się i zmienia kolor) 
+            }}
+
           >
             {artist.pseudonym}
           </div>
@@ -222,12 +261,14 @@ function App() {
                   key={album.id}
 
                   style={{
-                    border: "1px solid #ddd",
-                    borderRadius: "10px",
-                    padding: "20px",
-                    cursor: "pointer",
-                    background: "#eef6ff",
-                    textAlign: "center"
+                    border:"1px solid #333",
+                    borderRadius:"10px",
+                    padding:"20px",
+                    cursor:"pointer",
+                    background:"#2b2b2b",
+                    color:"#fff",
+                    textAlign:"center",
+                    transition:"0.2s"
                   }}
 
                   onClick={() => setSelectedAlbum(album.id)}  // zapisujemy wybrany album
@@ -265,8 +306,9 @@ function App() {
           </li>
         ))}
       </ul>
-
-    </div>
+     </div>
+   </div>
+ </div>
   );
 }
 
