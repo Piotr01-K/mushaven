@@ -149,14 +149,28 @@ function App() {
             <li
               key={result.id}
               style={{
-                borderRadius:"10px",
-                padding:"20px",
-                cursor:"pointer",
-                background:"#242424",
-                border:"1px solid #333",
-                textAlign:"center",
-                fontWeight:"bold",
-                transition:"0.2s"
+                background:"#1e293b",
+                padding:"8px",
+                marginBottom:"6px",
+                borderRadius:"6px",
+                border:"1px solid #334155",
+                cursor:"pointer"
+              }}
+
+              onClick={() => {
+
+                // jeśli to ARTYSTA
+                if (result.pseudonym) {
+                  setSelectedArtist(result.id)
+                  setSelectedAlbum(null)
+                }
+
+                // jeśli to ALBUM
+                if (result.title && result.artist) {
+                  setSelectedArtist(result.artist)
+                  setSelectedAlbum(result.id)
+                }
+
               }}
             >
               {result.title || result.pseudonym}      {/* result.title → dla piosenek i albumów */}
