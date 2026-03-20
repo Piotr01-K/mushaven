@@ -11,6 +11,34 @@ function App() {
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");      // przechowuje tekst wpisany w wyszukiwarkę
   const [searchResults, setSearchResults] = useState([]);    // przechowuje wyniki wyszukiwania z API
+  const [username, setUsername] = useState("")
+  const [password, setPassword] = useState("")
+  const [token, setToken] = useState(null)
+
+  const handleLogin = () => {
+
+    fetch("http://localhost:8000/auth/jwt/create/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        username: username,
+        password: password
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log("LOGIN RESPONSE:", data)
+
+        // zapisujemy token
+        setToken(data.access)
+
+        // opcjonalnie zapis do localStorage
+        localStorage.setItem("token", data.access)
+      })
+      .catch(error => console.error("Login error:", error))
+  }
 
   useEffect(() => {
 
@@ -94,7 +122,7 @@ function App() {
 
 
   return (
-    <div style={{
+   <div style={{
       padding:"40px",
       background:"#0f172a",     // granatowo-grafitowy
       color:"#e5e7eb",          // lekko-biały
@@ -110,7 +138,31 @@ function App() {
       alignItems:"flex-start"
     }}>
 
-     
+   <div style={{marginBottom: "30px"}}>
+
+    <h2>Login</h2>
+
+    <input
+      type="text"
+      placeholder="Username"
+      value={username}
+      onChange={(e) => setUsername(e.target.value)}
+    />
+
+    <input
+      type="password"
+      placeholder="Password"
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+    />
+
+    <button onClick={handleLogin}>
+      Login
+    </button>
+
+    {token && <p style={{color:"lightgreen"}}>Logged in ✅</p>}
+  
+  </div>
 
       {/* LEWA KOLUMNA – wyszukiwarka */}
       <div style={{width:"350px"}}>

@@ -17,7 +17,7 @@ class PlaylistViewSet(viewsets.ModelViewSet):
     serializer_class = PlaylistSerializer
 
     permission_classes = [IsAuthenticatedOrReadOnly]
-
+   
     def perform_create(self, serializer):
         """
         Ta metoda jest wywoływana gdy ktoś tworzy playlistę.
