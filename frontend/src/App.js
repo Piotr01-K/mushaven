@@ -64,7 +64,24 @@ function App() {
       .then(res => res.json())
       .then(data => setAlbums(data));
 
-  }, []);
+    }, []);
+
+  useEffect(() => {
+
+    if (!token) return;  // 🔥 kluczowe
+
+    fetch("http://localhost:8000/api/playlists/", {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log("PLAYLISTS:", data)
+      })
+      .catch(error => console.error("Playlist error:", error))
+
+  }, [token]);   // 🔥 reaguje na zmianę tokena
 
     // funkcja wywoływana gdy klikniemy przycisk SEARCH
     //const handleSearch = () => {
