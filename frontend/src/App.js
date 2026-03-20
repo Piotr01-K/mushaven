@@ -120,6 +120,12 @@ function App() {
 
     }, [searchQuery]);   // uruchamia się gdy zmieni się searchQuery
 
+    useEffect(() => {
+      const savedToken = localStorage.getItem("token")
+      if (savedToken) {
+        setToken(savedToken)
+      }
+    }, [])
 
   return (
    <div style={{
