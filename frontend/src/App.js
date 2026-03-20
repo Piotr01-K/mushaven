@@ -262,7 +262,7 @@ function App() {
                e.currentTarget.style.background="#1e293b"         // (po najechaniu myszką karta powiększa się i zmienia kolor) 
               }
             }}
-        >
+           >
             {artist.pseudonym}
           </div>
         ))}
@@ -282,16 +282,26 @@ function App() {
           >
             {albums
               .filter(album => Number(album.artist) === selectedArtist)  // tylko albumy wybranego artysty
-              .map(album => (
+              .map(album => {
+                return (
                 <div
                   key={album.id}
 
                   style={{
-                    border:"1px solid #333",
+                    
                     borderRadius:"10px",
                     padding:"20px",
                     cursor:"pointer",
-                    background:"#2b2b2b",
+
+                    // Active logic
+                    background: Number(selectedAlbum) === album.id
+                      ? "#334155"
+                      : "#2b2b2b",
+
+                    border: Number(selectedAlbum) === album.id
+                      ? "2px solid #38bdf8"
+                      : "1px solid #333",
+
                     color:"#fff",
                     textAlign:"center",
                     transition:"0.2s"
@@ -301,11 +311,13 @@ function App() {
                 >
                   {album.title}
                 </div>
-              ))}
+                )
+              })
+            }
           </div>
         </>
       )}
-
+     
       {selectedAlbum && (
         <>
           <h2>Album Songs</h2>
