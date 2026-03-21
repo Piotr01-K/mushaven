@@ -14,6 +14,7 @@ function App() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [token, setToken] = useState(null)
+  const [playlists, setPlaylists] = useState([])
 
   const handleLogin = () => {
 
@@ -70,7 +71,7 @@ function App() {
 
     if (!token) return;  // 🔥 kluczowe
 
-    fetch("http://localhost:8000/api/playlists/", {
+    fetch("http://localhost:8000/api/playlists/playlists/", {
       headers: {
         "Authorization": `Bearer ${token}`
       }
@@ -78,6 +79,7 @@ function App() {
       .then(res => res.json())
       .then(data => {
         console.log("PLAYLISTS:", data)
+        setPlaylists(data)    // zapisuje playlisty do Reacta
       })
       .catch(error => console.error("Playlist error:", error))
 
@@ -186,6 +188,21 @@ function App() {
     {token && <p style={{color:"lightgreen"}}>Logged in ✅</p>}
   
   </div>
+
+     {token && (
+     <div>
+       <h2>Your Playlists</h2>
+
+       <ul>
+         {playlists.map(p => (
+           <li key={p.id}>
+             {p.name}
+           </li>
+         ))}
+       </ul>
+
+     </div>
+   )}
 
       {/* LEWA KOLUMNA – wyszukiwarka */}
       <div style={{width:"350px"}}>
