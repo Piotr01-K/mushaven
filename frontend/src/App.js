@@ -15,6 +15,7 @@ function App() {
   const [password, setPassword] = useState("")
   const [token, setToken] = useState(null)
   const [playlists, setPlaylists] = useState([])
+  const [newPlaylistName, setNewPlaylistName] = useState("")
 
   const handleLogin = () => {
 
@@ -39,6 +40,37 @@ function App() {
         localStorage.setItem("token", data.access)
       })
       .catch(error => console.error("Login error:", error))
+  }
+
+  // umożliwia tworzenie i edycję playlists w React
+  const handleCreatePlaylist = () => {
+    // blokada pustych nazw
+    if (!newPlaylistName.trim()) {
+      alert("Podaj nazwę playlisty!")
+      return
+    }
+
+    fetch("http://localhost:8000/api/playlists/playlists/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        name: newPlaylistName
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log("CREATED:", data)
+
+        // dodajemy nową playlistę do listy
+        setPlaylists(prev => [...prev, data])
+
+        // czyścimy input
+        setNewPlaylistName("")
+      })
+      .catch(error => console.error("Create error:", error))
   }
 
   useEffect(() => {
@@ -79,8 +111,14 @@ function App() {
       .then(res => res.json())
       .then(data => {
         console.log("PLAYLISTS:", data)
-        setPlaylists(data)    // zapisuje playlisty do Reacta
-      })
+        // zabezpieczenie przed wyrzuceniem błędu przy załadowaniu React
+        if (Array.isArray(data)) {
+          setPlaylists(data)   // zapisuje playlisty w React
+        } else {
+          console.error("NOT ARRAY:", data)
+          setPlaylists([])   // reset żeby nie crashowało
+        }
+     })
       .catch(error => console.error("Playlist error:", error))
 
   }, [token]);   // 🔥 reaguje na zmianę tokena
@@ -191,12 +229,27 @@ function App() {
 
      {token && (
      <div>
+       <div style={{marginBottom: "10px"}}>
+
+    <input
+      type="text"
+      placeholder="New playlist name"
+      value={newPlaylistName}
+      onChange={(e) => setNewPlaylistName(e.target.value)}
+    />
+
+    <button onClick={handleCreatePlaylist}>
+      Create
+    </button>
+
+  </div>
+
        <h2>Your Playlists</h2>
 
        <ul>
-         {playlists.map(p => (
+         {Array.isArray(playlists) && playlists.map(p => (
            <li key={p.id}>
-             {p.name}
+             {JSON.stringify(p)}
            </li>
          ))}
        </ul>
