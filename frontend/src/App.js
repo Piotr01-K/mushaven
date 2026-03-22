@@ -192,32 +192,38 @@ function App() {
       minHeight:"100vh"
     }}>
 
-      <h1 style={{color:"#38bdf8"}}>MusHaven 🎧</h1>
+
+     <h1 style={{color:"#38bdf8"}}>MusHaven 🎧</h1>
+
+
+     <p style={{color:"#94a3b8", marginTop:"-10px"}}>
+      Discover music. Build playlists. 🎶
+     </p>
 
     <div style={{
       padding:"40px",
-      display:"flex",        // włącza układ poziomy
-      gap:"40px",            // odstęp między kolumnami
-      alignItems:"flex-start"
+      display:"grid",     // włącza układ poziomy
+      gridTemplateColumns:"300px 1fr 250px",
+      gap:"30px"     // odstęp między kolumnami
     }}>
 
-   <div style={{marginBottom: "30px"}}>
+   <div>   {/* LEWA KOLUMNA */}
+    <div style={{marginBottom:"30px"}}>
+      <h2>Login</h2>
 
-    <h2>Login</h2>
+      <input
+        type="text"
+        placeholder="Username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+      />
 
-    <input
-      type="text"
-      placeholder="Username"
-      value={username}
-      onChange={(e) => setUsername(e.target.value)}
-    />
-
-    <input
-      type="password"
-      placeholder="Password"
-      value={password}
-      onChange={(e) => setPassword(e.target.value)}
-    />
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
 
     <button onClick={handleLogin}>
       Login
@@ -226,38 +232,62 @@ function App() {
     {token && <p style={{color:"lightgreen"}}>Logged in ✅</p>}
   
   </div>
-
+     {/* PLAYLISTY */}
      {token && (
-     <div>
-       <div style={{marginBottom: "10px"}}>
+       <div>
+         <div style={{marginBottom: "10px"}}>
 
-    <input
-      type="text"
-      placeholder="New playlist name"
-      value={newPlaylistName}
-      onChange={(e) => setNewPlaylistName(e.target.value)}
-    />
+        <input
+          type="text"
+          placeholder="New playlist name"
+          value={newPlaylistName}
+          onChange={(e) => setNewPlaylistName(e.target.value)}
+          style={{
+            padding:"8px",
+            marginRight:"8px",
+            borderRadius:"6px",
+            border:"1px solid #334155"
+          }}
+        />
 
-    <button onClick={handleCreatePlaylist}>
-      Create
-    </button>
+        <button
+          onClick={handleCreatePlaylist}
+          style={{
+            padding:"8px 12px",
+            borderRadius:"6px",
+            background:"#38bdf8",
+            border:"none",
+            cursor:"pointer"
+          }}
+        >
+          Create
+        </button>
 
-  </div>
+        </div>
 
-       <h2>Your Playlists</h2>
+        <h2>Your Playlists</h2>
 
-       <ul>
-         {Array.isArray(playlists) && playlists.map(p => (
-           <li key={p.id}>
-             {JSON.stringify(p)}
+       <ul style={{listStyle:"none", padding:0}}>
+          {Array.isArray(playlists) && playlists.map(p => (
+            <li
+              key={p.id}
+              style={{
+                background:"#1e293b",
+                padding:"8px",
+                marginBottom:"6px",
+                borderRadius:"6px",
+                border:"1px solid #334155"
+              }}
+            >
+             {p.name}
            </li>
          ))}
        </ul>
 
      </div>
-   )}
-
-      {/* LEWA KOLUMNA – wyszukiwarka */}
+    )}
+  </div>
+      {/* ŚRODKOWA KOLUMNA – wyszukiwarka */}
       <div style={{width:"350px"}}>
 
       <h2 style={{color:"#38bdf8"}}>Search</h2>
@@ -329,21 +359,31 @@ function App() {
 
     )}
 
-  </div>
+ </div>
 
-  {/* PRAWA KOLUMNA – reszta aplikacji */}
-  <div style={{flex:1}}>
 
-      {stats && (
-        <>
-          <h2>Statistics</h2>
-          <p>Artists: {stats.artists}</p>
-          <p>Albums: {stats.albums}</p>
-          <p>Songs: {stats.songs}</p>
-          <p>Playlists: {stats.playlists}</p>
-        </>
-      )}
+    {/* PRAWA KOLUMNA – statystyki */}
+    
 
+    {stats && (
+      <div
+        style={{
+          background:"#1e293b",
+          padding:"20px",
+          borderRadius:"10px",
+          border:"1px solid #334155"
+        }}
+      >
+        <h2>Statistics</h2>
+
+        <p>Artists: {stats.artists}</p>
+        <p>Albums: {stats.albums}</p>
+        <p>Songs: {stats.songs}</p>
+        <p>Playlists: {stats.playlists}</p>
+      </div>
+    )}
+
+ 
       <h2>Top Songs</h2>
 
       <ul>
@@ -491,8 +531,8 @@ function App() {
       </ul>
      </div>
    </div>
- </div>
-  );
+ // </div>
+);
 }
 
 
