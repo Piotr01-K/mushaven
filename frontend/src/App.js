@@ -65,10 +65,17 @@ function App() {
         console.log("CREATED:", data)
 
         // dodajemy nową playlistę do listy
-        setPlaylists(prev => [...prev, data])
+       setPlaylists(prev => [
+         ...prev,
+         {
+           ...data,
+           name: data.name || newPlaylistName
+         }
+      ])
 
-        // czyścimy input
+      // czyścimy input
         setNewPlaylistName("")
+        
       })
       .catch(error => console.error("Create error:", error))
   }
@@ -185,8 +192,10 @@ function App() {
     }, [])
 
   return (
+  
    <div style={{
-      padding:"40px",
+      padding:"20px",
+      fontSize:"13px",
       background:"#0f172a",     // granatowo-grafitowy
       color:"#e5e7eb",          // lekko-biały
       minHeight:"100vh"
@@ -203,7 +212,7 @@ function App() {
     <div style={{
       padding:"40px",
       display:"grid",     // włącza układ poziomy
-      gridTemplateColumns:"300px 1fr 250px",
+      gridTemplateColumns:"280px 1fr 260px",
       gap:"30px"     // odstęp między kolumnami
     }}>
 
@@ -279,7 +288,7 @@ function App() {
                 border:"1px solid #334155"
               }}
             >
-             {p.name}
+             {p.name || "Unnamed playlist"}
            </li>
          ))}
        </ul>
@@ -306,8 +315,9 @@ function App() {
 
         style={{
           padding:"10px",
-          width:"250px",
-          marginRight:"10px"
+          width:"100px",
+          borderRadius:"6px",
+          border:"1px solid #334155"
         }}
       />
 
@@ -318,7 +328,12 @@ function App() {
       <>
         <h3>Search Results</h3>
 
-        <ul>
+        <ul style={{
+          maxHeight:"300px",
+          overflowY:"auto",
+          padding:0
+        }}>
+
           {searchResults.map(result => (
 
             <li
@@ -383,10 +398,18 @@ function App() {
       </div>
     )}
 
- 
-      <h2>Top Songs</h2>
+    <div style={{marginTop:"30px"}}>
+     <div>
 
-      <ul>
+      <div style={{
+        display:"grid",
+        gridTemplateColumns:"1fr 1fr",
+        gap:"20px"
+      }}>
+
+      <h2 style={{marginTop:"30px"}}>Top Songs</h2>
+
+      <ul style={{paddingLeft:"15px"}}>
         {topSongs.map(song => (
           <li key={song.id}>
             {song.title}
@@ -394,12 +417,14 @@ function App() {
         ))}
       </ul>
 
-      <h2>Artists</h2>
+      </div>
+
+     <h2>Artists</h2>
 
       <div
         style={{
           display: "grid",              // grid layout zamiast listy
-          gridTemplateColumns: "repeat(auto-fill, 200px)", // ile kart w rzędzie
+          gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", // ile kart w rzędzie
           gap: "15px",                  // odstęp między kartami
           marginBottom: "30px"
         }}
@@ -410,7 +435,7 @@ function App() {
 
             style={{
               borderRadius:"12px",
-              padding:"20px",
+              padding:"12px",
               cursor:"pointer",
 
               // kluczowy fragment
@@ -519,7 +544,7 @@ function App() {
         </>
       )}
 
-
+    </div>
       <h2>All Songs</h2>
 
       <ul>
@@ -529,9 +554,9 @@ function App() {
           </li>
         ))}
       </ul>
+      </div>
      </div>
-   </div>
- // </div>
+  </div>
 );
 }
 

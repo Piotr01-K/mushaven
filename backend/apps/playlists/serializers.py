@@ -9,7 +9,7 @@ class PlaylistSongSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PlaylistSong
-        fields = "__all__"
+        fields = ["id", "name", "creator", "songs"]
 
 
 # ======================================================
@@ -25,4 +25,4 @@ class PlaylistSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Playlist
-        fields = "__all__"
+        fields = ["id", "name", "creator", "songs"]
