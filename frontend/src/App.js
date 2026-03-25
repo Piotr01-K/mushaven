@@ -296,8 +296,9 @@ function App() {
      </div>
     )}
   </div>
+
       {/* ŚRODKOWA KOLUMNA – wyszukiwarka */}
-      <div style={{width:"350px"}}>
+      <div>
 
       <h2 style={{color:"#38bdf8"}}>Search</h2>
 
@@ -331,7 +332,8 @@ function App() {
         <ul style={{
           maxHeight:"300px",
           overflowY:"auto",
-          padding:0
+          padding:0,
+          maxWidth:"500px" 
         }}>
 
           {searchResults.map(result => (
@@ -340,6 +342,8 @@ function App() {
               key={result.id}
               style={{
                 background:"#1e293b",
+                width:"100%",        
+                maxWidth:"500px",    
                 padding:"8px",
                 marginBottom:"6px",
                 borderRadius:"6px",
@@ -373,53 +377,9 @@ function App() {
       </>
 
     )}
-
- </div>
-
-
-    {/* PRAWA KOLUMNA – statystyki */}
-    
-
-    {stats && (
-      <div
-        style={{
-          background:"#1e293b",
-          padding:"20px",
-          borderRadius:"10px",
-          border:"1px solid #334155"
-        }}
-      >
-        <h2>Statistics</h2>
-
-        <p>Artists: {stats.artists}</p>
-        <p>Albums: {stats.albums}</p>
-        <p>Songs: {stats.songs}</p>
-        <p>Playlists: {stats.playlists}</p>
-      </div>
-    )}
-
-    <div style={{marginTop:"30px"}}>
-     <div>
-
-      <div style={{
-        display:"grid",
-        gridTemplateColumns:"1fr 1fr",
-        gap:"20px"
-      }}>
-
-      <h2 style={{marginTop:"30px"}}>Top Songs</h2>
-
-      <ul style={{paddingLeft:"15px"}}>
-        {topSongs.map(song => (
-          <li key={song.id}>
-            {song.title}
-          </li>
-        ))}
-      </ul>
-
-      </div>
-
-     <h2>Artists</h2>
+  
+      
+       <h2>Artists</h2>
 
       <div
         style={{
@@ -544,19 +504,60 @@ function App() {
         </>
       )}
 
-    </div>
+  
+      <h2>Top Songs</h2>
+
+      <ul style={{paddingLeft:"15px"}}>
+        {topSongs.map(song => (
+          <li key={song.id}>
+            {song.title}
+          </li>
+        ))}
+      </ul>
+
+
       <h2>All Songs</h2>
 
-      <ul>
+      <ul style={{
+        maxHeight:"200px",
+        overflowY:"auto",
+
+        maxWidth:"500px",   // ograniczenie szerokości
+        marginLeft:"0px"
+      }}>
+    
         {songs.map(song => (
           <li key={song.id}>
             {song.title}
           </li>
         ))}
       </ul>
+      
+    </div>
+    
+  {/* PRAWA KOLUMNA – statystyki */}
+
+    {stats && (
+      <div
+        style={{
+          background:"#1e293b",
+          padding:"20px",
+          borderRadius:"10px",
+          border:"1px solid #334155",
+          height:"fit-content",   // ograniczenie w pionie
+          alignSelf:"start"       
+        }}
+      >
+        <h2>Statistics</h2>
+
+        <p>Artists: {stats.artists}</p>
+        <p>Albums: {stats.albums}</p>
+        <p>Songs: {stats.songs}</p>
+        <p>Playlists: {stats.playlists}</p>
       </div>
-     </div>
+    )}
   </div>
+ </div>
 );
 }
 
