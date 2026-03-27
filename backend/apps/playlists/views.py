@@ -6,6 +6,11 @@ from rest_framework import viewsets
 from .models import Playlist, PlaylistSong
 from .serializers import PlaylistSerializer, PlaylistSongSerializer
 
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Playlist, PlaylistSong
+
 
 # ======================================================
 # API: Playlist
@@ -37,6 +42,27 @@ class PlaylistViewSet(viewsets.ModelViewSet):
             return [IsPlaylistOwner()]
 
         return super().get_permissions()
+
+    @action(detail=True, methods=["post"], url_path="add-song")   # dodawanie playlist song
+    def add_song(self, request, pk=None):
+        playlist = self.get_object()
+        song_id = request.data.get("song_id")
+
+        if not song_id:
+            return Response({"error": "song_id required"}, status=400)
+
+        last_song = playlist.playlistsong_set.order_by("-order").first()
+
+        next_order = last_song.order + 1 if last_song else 1
+
+        PlaylistSong.objects.create(
+            playlist=playlist,
+            song_id=song_id,
+            order=next_order
+        )
+
+
+        return Response({"status": "song added"})
 
 
 # ======================================================

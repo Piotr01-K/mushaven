@@ -42,13 +42,45 @@ function App() {
       .catch(error => console.error("Login error:", error))
   }
 
+  const handleAddToPlaylist = (songId) => {
+      if (!playlists.length) {
+        alert("Brak playlist")
+        return
+      }
+
+    const playlistId = playlists[0].id
+
+    fetch(`http://localhost:8000/api/playlists/playlists/${playlistId}/add-song/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        song_id: songId
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log("Added:", data)
+        alert("Dodano do playlisty ✅")
+      })
+      .catch(err => console.error(err))
+  }
+
+
   // umożliwia tworzenie i edycję playlists w React
   const handleCreatePlaylist = () => {
+  
+  // dodawania do playlisty  
+  
     // blokada pustych nazw
     if (!newPlaylistName.trim()) {
       alert("Podaj nazwę playlisty!")
       return
     }
+
+ 
 
     fetch("http://localhost:8000/api/playlists/playlists/", {
       method: "POST",
@@ -498,6 +530,19 @@ function App() {
               .map(song => (
                 <li key={song.id}>
                   {song.title}
+                  
+                  <button
+                    // onClick={() => handleAddToPlaylist(song.id)}
+                       onClick={() => {
+                         console.log("CLICK", song.id)
+                         handleAddToPlaylist(song.id)
+                       }}
+
+                    style={{ marginLeft: "10px" }}
+                  >
+                     ➕
+                  </button>
+
                 </li>
               ))}
           </ul>

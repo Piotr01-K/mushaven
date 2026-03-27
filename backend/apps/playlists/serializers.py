@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Playlist, PlaylistSong
-
+from apps.music.serializers import SongSerializer
 
 # ======================================================
 # SERIALIZER: PlaylistSong
@@ -9,7 +9,7 @@ class PlaylistSongSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PlaylistSong
-        fields = ["id", "name", "creator", "songs"]
+        fields = ["id", "playlist", "song"]
 
 
 # ======================================================
@@ -17,12 +17,13 @@ class PlaylistSongSerializer(serializers.ModelSerializer):
 # ======================================================
 class PlaylistSerializer(serializers.ModelSerializer):
 
-    songs = PlaylistSongSerializer(
-        source="playlistsong_set",
-        many=True,
-        read_only=True
-    )
+    songs = serializers.SerializerMethodField()
 
     class Meta:
         model = Playlist
         fields = ["id", "name", "creator", "songs"]
+
+    def get_songs(self, obj):
+        playlist_songs = obj.playlistsong_set.all()
+        songs = [ps.song for ps in playlist_songs]
+        return SongSerializer(songs, many=True).data
