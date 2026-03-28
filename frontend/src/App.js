@@ -14,8 +14,9 @@ function App() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [token, setToken] = useState(null)
-  const [playlists, setPlaylists] = useState([])
+  const [playlists, setPlaylists] = useState([])    //przechowuje klikniętą listę
   const [newPlaylistName, setNewPlaylistName] = useState("")
+  const [selectedPlaylist, setSelectedPlaylist] = useState(null)    // tworzy zmienną React
 
   const handleLogin = () => {
 
@@ -64,6 +65,7 @@ function App() {
       .then(data => {
         console.log("Added:", data)
         alert("Dodano do playlisty ✅")
+        fetchPlaylists()   // dzięki temu React pobiera "świeże" dane
       })
       .catch(err => console.error(err))
   }
@@ -138,9 +140,9 @@ function App() {
 
     }, []);
 
-  useEffect(() => {
+      const fetchPlaylists = () => {
 
-    if (!token) return;  // 🔥 kluczowe
+    if (!token) return;
 
     fetch("http://localhost:8000/api/playlists/playlists/", {
       headers: {
@@ -150,45 +152,32 @@ function App() {
       .then(res => res.json())
       .then(data => {
         console.log("PLAYLISTS:", data)
-        // zabezpieczenie przed wyrzuceniem błędu przy załadowaniu React
+
         if (Array.isArray(data)) {
-          setPlaylists(data)   // zapisuje playlisty w React
+          setPlaylists(data)
+
+          // 👇 WAŻNE — aktualizacja wybranej playlisty
+          if (selectedPlaylist) {
+            const updated = data.find(p => p.id === selectedPlaylist.id)
+            setSelectedPlaylist(updated)
+          }
+
         } else {
           console.error("NOT ARRAY:", data)
-          setPlaylists([])   // reset żeby nie crashowało
+          setPlaylists([])
         }
-     })
+      })
       .catch(error => console.error("Playlist error:", error))
+  }
 
-  }, [token]);   // 🔥 reaguje na zmianę tokena
-
-    // funkcja wywoływana gdy klikniemy przycisk SEARCH
-    //const handleSearch = () => {
-
-    // jeśli pole jest puste – nie wysyłamy zapytania
-    //if (!searchQuery.trim()) return;
-
-    // wysyłamy request do backendu
-    //fetch(`http://localhost:8000/api/music/search/?q=${searchQuery}`)
-    //  .then(res => res.json())
-    //  .then(data => {
-
-         // łączymy wszystkie wyniki w jedną listę
-    //     const combinedResults = [
-    //       ...data.artists,
-    //       ...data.albums,
-    //       ...data.songs
-    //     ];
-
-         // zapisujemy wyniki w stanie React
-    //      setSearchResults(combinedResults);
-
-    //  })
-    //  .catch(error => console.error("Search error:", error));
-    //};
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => {
+      if (token) {
+        fetchPlaylists()
+      }
+    }, [token])
 
 
-    // LIVE SEARCH – uruchamia wyszukiwanie gdy zmienia się tekst - przycisk wyszukiwania nie jest potrzebny!
     useEffect(() => {
 
       // nie wysyłamy requestów dla pustego pola
@@ -312,8 +301,17 @@ function App() {
           {Array.isArray(playlists) && playlists.map(p => (
             <li
               key={p.id}
-              style={{
-                background:"#1e293b",
+                              
+
+                onClick={() => setSelectedPlaylist(p)}   // zapisuje playlistę
+
+                style={{
+                  cursor:"pointer",
+
+                  background: selectedPlaylist?.id === p.id    // sprawdza czy ta ta sama lista
+                    ? "#334155"   // aktywna (kliknięta)
+                    : "#1e293b",
+
                 padding:"8px",
                 marginBottom:"6px",
                 borderRadius:"6px",
@@ -324,6 +322,25 @@ function App() {
            </li>
          ))}
        </ul>
+
+
+      {selectedPlaylist && (
+      <div style={{marginTop:"20px"}}>
+
+        <h3>Playlist Songs</h3>
+
+        <ul>
+          {selectedPlaylist.songs.map(song => (
+            <li key={song.id}>
+              {song.title}
+            </li>
+          ))}
+        </ul>
+
+      </div>
+    )}
+
+
 
      </div>
     )}
