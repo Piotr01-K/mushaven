@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 
 function App() {
 
@@ -44,12 +44,19 @@ function App() {
   }
 
   const handleAddToPlaylist = (songId) => {
+
       if (!playlists.length) {
         alert("Brak playlist")
         return
       }
 
-    const playlistId = playlists[0].id
+    if (!selectedPlaylist) {
+      alert("Najpierw wybierz playlistę!")
+      return
+    }
+
+    const playlistId = selectedPlaylist.id
+
 
     fetch(`http://localhost:8000/api/playlists/playlists/${playlistId}/add-song/`, {
       method: "POST",
@@ -98,18 +105,12 @@ function App() {
       .then(data => {
         console.log("CREATED:", data)
 
-        // dodajemy nową playlistę do listy
-       setPlaylists(prev => [
-         ...prev,
-         {
-           ...data,
-           name: data.name || newPlaylistName
-         }
-      ])
-
-      // czyścimy input
+        
+        // czyścimy input
         setNewPlaylistName("")
         
+        fetchPlaylists()
+
       })
       .catch(error => console.error("Create error:", error))
   }
@@ -140,7 +141,7 @@ function App() {
 
     }, []);
 
-      const fetchPlaylists = () => {
+      const fetchPlaylists = useCallback(() => {
 
     if (!token) return;
 
@@ -156,7 +157,7 @@ function App() {
         if (Array.isArray(data)) {
           setPlaylists(data)
 
-          // 👇 WAŻNE — aktualizacja wybranej playlisty
+          // aktualizacja wybranej playlisty
           if (selectedPlaylist) {
             const updated = data.find(p => p.id === selectedPlaylist.id)
             setSelectedPlaylist(updated)
@@ -168,14 +169,15 @@ function App() {
         }
       })
       .catch(error => console.error("Playlist error:", error))
-  }
+  }, [token, selectedPlaylist])
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => {
+
+
+  useEffect(() => {
       if (token) {
         fetchPlaylists()
       }
-    }, [token])
+    }, [token, fetchPlaylists])
 
 
     useEffect(() => {
@@ -297,6 +299,12 @@ function App() {
 
         <h2>Your Playlists</h2>
 
+        {selectedPlaylist && (
+          <p style={{color:"#38bdf8"}}>
+            Wybrana: {selectedPlaylist.name}    {/* pokazuje użytkownikowi, do której playlisty dodaje */}
+          </p>
+        )}
+
        <ul style={{listStyle:"none", padding:0}}>
           {Array.isArray(playlists) && playlists.map(p => (
             <li
@@ -315,7 +323,10 @@ function App() {
                 padding:"8px",
                 marginBottom:"6px",
                 borderRadius:"6px",
-                border:"1px solid #334155"
+                border: selectedPlaylist?.id === p.id     // niebieska ramka jeśli zostaje wybrany
+                  ? "2px solid #38bdf8"
+                  : "1px solid #334155",
+
               }}
             >
              {p.name || "Unnamed playlist"}
