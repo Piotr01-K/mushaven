@@ -103,6 +103,11 @@ function App() {
       
       .then(res => {
         console.log("CREATE STATUS:", res.status)   // Obsługuje statusy HTTP (200 / 400 / 401 / 403) + odpowiedź backendu
+
+        if (!res.ok) {
+          throw new Error("Create failed")   // zatrzymuje przy 400
+        }
+
         return res.json()
       })
 
@@ -190,8 +195,14 @@ function App() {
         if (Array.isArray(data)) {
           setPlaylists(data)
 
-
-
+          // automatycznie aktualizuje wybraną listę
+          if (selectedPlaylist) {
+            const updated = data.find(p => p.id === selectedPlaylist.id)
+          // jeśli coś się zmieniło to:
+            if (updated) {
+            setSelectedPlaylist(updated)
+          }
+         }
         } else {
           console.error("NOT ARRAY:", data)
           setPlaylists([])
@@ -200,13 +211,25 @@ function App() {
       .catch(error => console.error("Playlist error:", error))
   }, [token])
 
-
+  
   
   useEffect(() => {
       if (token) {
         fetchPlaylists()
       }
-    }, [token, fetchPlaylists])
+    }, [token])
+
+  useEffect(() => {
+
+      if (!selectedPlaylist) return;
+
+      const updated = playlists.find(p => p.id === selectedPlaylist.id)
+
+      if (updated) {
+         setSelectedPlaylist(updated)
+      }
+
+    }, [playlists])
 
 
     useEffect(() => {

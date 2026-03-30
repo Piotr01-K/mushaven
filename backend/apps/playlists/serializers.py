@@ -29,6 +29,7 @@ class PlaylistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Playlist
         fields = ["id", "name", "creator", "songs"]
+        read_only_fields = ["creator"]
 
     def get_songs(self, obj):
         playlist_songs = obj.playlistsong_set.all()
