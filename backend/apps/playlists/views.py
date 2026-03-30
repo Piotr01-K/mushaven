@@ -73,3 +73,16 @@ class PlaylistSongViewSet(viewsets.ModelViewSet):
     queryset = PlaylistSong.objects.all()
 
     serializer_class = PlaylistSongSerializer
+
+    @action(detail=True, methods=["delete"], url_path="remove")     # usuwanie utworu z playlisty
+    def remove(self, request, pk=None):
+        """
+        Usuwa konkretny element PlaylistSong (czyli utwór z playlisty)
+        pk = ID wpisu PlaylistSong (NIE song_id!)
+        """
+        obj = self.get_object()
+        obj.delete()
+        return Response(
+            {"status": "song removed"},
+            status=status.HTTP_204_NO_CONTENT
+        )

@@ -7,9 +7,12 @@ from apps.music.serializers import SongSerializer
 # ======================================================
 class PlaylistSongSerializer(serializers.ModelSerializer):
 
+    # pobieramy tytuł utworu z powiązanego modelu Song
+    song_title = serializers.CharField(source="song.title", read_only=True)
+
     class Meta:
         model = PlaylistSong
-        fields = ["id", "playlist", "song"]
+        fields = ["id", "playlist", "song", "song_title"]
 
 
 # ======================================================
@@ -17,7 +20,11 @@ class PlaylistSongSerializer(serializers.ModelSerializer):
 # ======================================================
 class PlaylistSerializer(serializers.ModelSerializer):
 
-    songs = serializers.SerializerMethodField()
+    songs = PlaylistSongSerializer(
+        source="playlistsong_set",
+        many=True,
+        read_only=True
+    )
 
     class Meta:
         model = Playlist

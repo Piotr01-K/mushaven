@@ -89,7 +89,6 @@ function App() {
       return
     }
 
- 
 
     fetch("http://localhost:8000/api/playlists/playlists/", {
       method: "POST",
@@ -101,7 +100,12 @@ function App() {
         name: newPlaylistName
       })
     })
-      .then(res => res.json())
+      
+      .then(res => {
+        console.log("CREATE STATUS:", res.status)   // Obsługuje statusy HTTP (200 / 400 / 401 / 403) + odpowiedź backendu
+        return res.json()
+      })
+
       .then(data => {
         console.log("CREATED:", data)
 
@@ -113,6 +117,35 @@ function App() {
 
       })
       .catch(error => console.error("Create error:", error))
+  }
+    //  wysyła del do backendu, usuwa utwór z Palylist i odświeża Playlistę.
+    const handleRemoveFromPlaylist = (playlistSongId) => {
+
+      console.log("DELETE ID:", playlistSongId)
+
+    fetch(`http://localhost:8000/api/playlists/playlist-songs/${playlistSongId}/remove/`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    })
+      
+    .then(res => {
+      console.log("DELETE STATUS:", res.status)   // debugowanie
+
+      if (res.status === 204) {
+        return null   // brak JSON
+      }
+
+      return res.json()
+    })
+    .then(() => {
+      alert("Usunięto z playlisty ❌")
+
+      // odśwież dane z backendu
+      fetchPlaylists()
+    })
+      .catch(err => console.error(err))
   }
 
   useEffect(() => {
@@ -157,11 +190,7 @@ function App() {
         if (Array.isArray(data)) {
           setPlaylists(data)
 
-          // aktualizacja wybranej playlisty
-          if (selectedPlaylist) {
-            const updated = data.find(p => p.id === selectedPlaylist.id)
-            setSelectedPlaylist(updated)
-          }
+
 
         } else {
           console.error("NOT ARRAY:", data)
@@ -169,10 +198,10 @@ function App() {
         }
       })
       .catch(error => console.error("Playlist error:", error))
-  }, [token, selectedPlaylist])
+  }, [token])
 
 
-
+  
   useEffect(() => {
       if (token) {
         fetchPlaylists()
@@ -341,23 +370,35 @@ function App() {
         <h3>Playlist Songs</h3>
 
         <ul>
-          {selectedPlaylist.songs.map(song => (
-            <li key={song.id}>
-              {song.title}
+          {selectedPlaylist.songs.map(item => {
+
+            console.log("ITEM:", item)
+
+            return (
+              <li key={item.id}>
+                {item.song_title}
+
+              <button
+                onClick={() => handleRemoveFromPlaylist(item.id)}
+                style={{ marginLeft: "10px" }}
+              >
+                ❌
+              </button>
+
             </li>
-          ))}
+            )
+          })}
         </ul>
 
-      </div>
-    )}
-
-
-
+    
      </div>
     )}
   </div>
+  
+  )}  
+</div>
 
-      {/* ŚRODKOWA KOLUMNA – wyszukiwarka */}
+    {/* ŚRODKOWA KOLUMNA – wyszukiwarka */}
       <div>
 
       <h2 style={{color:"#38bdf8"}}>Search</h2>
