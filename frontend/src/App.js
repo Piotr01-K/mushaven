@@ -68,13 +68,21 @@ function App() {
         song_id: songId
       })
     })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error("Duplicate")
+        }
+        return res.json()
+      })
       .then(data => {
         console.log("Added:", data)
         alert("Dodano do playlisty ✅")
         fetchPlaylists()   // dzięki temu React pobiera "świeże" dane
       })
-      .catch(err => console.error(err))
+      .catch(err => {
+        alert("Ten utwór już jest w playliście ⚠️")
+        console.error(err)
+      })
   }
 
 
