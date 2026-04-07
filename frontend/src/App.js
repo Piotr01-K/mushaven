@@ -78,6 +78,7 @@ function App() {
         console.log("Added:", data)
         alert("Dodano do playlisty ✅")
         fetchPlaylists()   // dzięki temu React pobiera "świeże" dane
+        fetchTopSongs()    // dzięki temu React pobiera "świeże" dane
       })
       .catch(err => {
         alert("Ten utwór już jest w playliście ⚠️")
@@ -127,7 +128,7 @@ function App() {
         setNewPlaylistName("")
         
         fetchPlaylists()
-
+        fetchTopSongs()
       })
       .catch(error => console.error("Create error:", error))
   }
@@ -157,6 +158,7 @@ function App() {
 
       // odśwież dane z backendu
       fetchPlaylists()
+      fetchTopSongs()
     })
       .catch(err => console.error(err))
   }
@@ -219,8 +221,16 @@ function App() {
       .catch(error => console.error("Playlist error:", error))
   }, [token])
 
-  
-  
+    const fetchTopSongs = () => {
+      fetch("http://localhost:8000/api/music/top-songs/")
+        .then(res => res.json())
+        .then(data => {
+          console.log("TOP SONGS:", data)
+          setTopSongs(data)
+        })
+        .catch(err => console.error(err))
+    }
+
   useEffect(() => {
       if (token) {
         fetchPlaylists()
@@ -228,6 +238,11 @@ function App() {
     }, [token])
 
   useEffect(() => {
+    fetchTopSongs()
+  }, []) 
+
+  useEffect(() => {
+  
 
       if (!selectedPlaylist) return;
 
@@ -238,6 +253,16 @@ function App() {
       }
 
     }, [playlists])
+
+  useEffect(() => {
+    fetch("http://localhost:8000/api/music/top-songs/")
+      .then(res => res.json())
+      .then(data => {
+        console.log("TOP SONGS:", data)
+        setTopSongs(data)
+      })
+      .catch(err => console.error(err))
+  }, [])
 
 
     useEffect(() => {
@@ -653,9 +678,9 @@ function App() {
       <h2>Top Songs</h2>
 
       <ul style={{paddingLeft:"15px"}}>
-        {topSongs.map(song => (
-          <li key={song.id}>
-            {song.title}
+        {topSongs.map((song, index) => (
+          <li key={index}>
+            {song.title} ({song.count})
           </li>
         ))}
       </ul>

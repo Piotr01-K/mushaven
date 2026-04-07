@@ -73,7 +73,12 @@ def top_songs(request):
         .order_by("-count")[:10]
     )
 
-    return Response(songs)
+    result = [
+        {"title": item["song__title"], "count": item["count"]}
+        for item in songs
+    ]
+
+    return Response(result)
 
 
 @api_view(["GET"])
