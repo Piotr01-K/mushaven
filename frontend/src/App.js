@@ -17,6 +17,8 @@ function App() {
   const [playlists, setPlaylists] = useState([])    //przechowuje klikniętą listę
   const [newPlaylistName, setNewPlaylistName] = useState("")
   const [selectedPlaylist, setSelectedPlaylist] = useState(null)    // tworzy zmienną React
+  const [registerUsername, setRegisterUsername] = useState("")     // dane do rejestracji użytkownika
+  const [registerPassword, setRegisterPassword] = useState("")      // dane do rejestracji użytkownika
 
   const handleLogin = () => {
 
@@ -161,6 +163,42 @@ function App() {
       fetchTopSongs()
     })
       .catch(err => console.error(err))
+  }
+
+    // rejestracja użytkownika
+    // wysyła dane do Django (Djoser)
+  const handleRegister = () => {
+
+    fetch("http://localhost:8000/auth/users/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        username: registerUsername,
+        password: registerPassword,
+        re_password: registerPassword   // to wymagane jest przez Djoser
+      })
+    })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error("Register failed")
+        }
+        return res.json()
+      })
+      .then(data => {
+        console.log("REGISTERED:", data)
+
+        alert("Rejestracja udana ✅")
+
+        // czyścimy pola formularza
+        setRegisterUsername("")
+        setRegisterPassword("")
+      })
+      .catch(err => {
+        alert("Błąd rejestracji ❌")
+        console.error(err)
+      })
   }
 
   useEffect(() => {
@@ -327,6 +365,25 @@ function App() {
    <div>   {/* LEWA KOLUMNA */}
     <div style={{marginBottom:"30px"}}>
       <h2>Login</h2>
+
+      <h3>Register</h3>
+
+      <input
+        placeholder="username"
+        value={registerUsername}
+        onChange={(e) => setRegisterUsername(e.target.value)}
+      />
+
+      <input
+        type="password"
+        placeholder="password"
+        value={registerPassword}
+        onChange={(e) => setRegisterPassword(e.target.value)}
+      />
+
+      <button onClick={handleRegister}>
+        Register
+      </button>
 
       <input
         type="text"
