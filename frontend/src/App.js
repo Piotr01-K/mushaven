@@ -45,12 +45,28 @@ function App() {
       .catch(error => console.error("Login error:", error))
   }
 
+  const handleLogout = () => {
+    setToken(null)                // usuwa token z Reacta
+    localStorage.removeItem("token")  // usuwa token z pamięci przeglądarki
+
+    setPlaylists([])              // czyścimy dane użytkownika
+    setSelectedPlaylist(null)
+
+    alert("Wylogowano")
+  }
+
   const handleAddToPlaylist = (songId) => {
 
-      if (!playlists.length) {
-        alert("Brak playlist")
-        return
-      }
+    // Blokada gdy brak loginu
+    if (!token) {
+      alert("Musisz być zalogowany ❗")
+      return
+    }   
+
+    if (!playlists.length) {
+      alert("Brak playlist")
+      return
+    }
 
     if (!selectedPlaylist) {
       alert("Najpierw wybierz playlistę!")
@@ -136,6 +152,12 @@ function App() {
   }
     //  wysyła del do backendu, usuwa utwór z Palylist i odświeża Playlistę.
     const handleRemoveFromPlaylist = (playlistSongId) => {
+
+      // Blokada gdy brak loginu
+      if (!token) {
+        alert("Musisz być zalogowany ❗")
+        return
+      }
 
       console.log("DELETE ID:", playlistSongId)
 
@@ -403,7 +425,15 @@ function App() {
       Login
     </button>
 
-    {token && <p style={{color:"lightgreen"}}>Logged in ✅</p>}
+    {token && (       // walidacja: pokazuje przycisk tylko gdy użytkownik jest zalogowany
+      <>
+        <p style={{color:"lightgreen"}}>Logged in ✅</p>
+
+        <button onClick={handleLogout} style={{marginTop: "5px"}}>
+          Logout
+        </button>
+      </>
+    )}
   
   </div>
      {/* PLAYLISTY */}
