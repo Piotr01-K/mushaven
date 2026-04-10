@@ -7,6 +7,7 @@ from .views import GenreViewSet, ArtistViewSet, AlbumViewSet, SongViewSet
 from .views import top_songs
 from .views import recommendations
 from .views import search_music
+from .views import like_song, unlike_song
 
 router = DefaultRouter()
 
@@ -22,4 +23,9 @@ urlpatterns = router.urls + [
     path("recommendations/<int:song_id>/", recommendations),
     path("search/", search_music),
 
+]
+
+urlpatterns += [
+    path("songs/<int:song_id>/like/", like_song),
+    path("songs/<int:song_id>/unlike/", unlike_song),
 ]

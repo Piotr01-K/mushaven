@@ -8,10 +8,12 @@ from .models import Genre, Artist, Album, Song
 from .serializers import GenreSerializer, ArtistSerializer, AlbumSerializer, SongSerializer
 from django.db.models import Count, Q
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
 from apps.playlists.models import PlaylistSong
+from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
 
 
 # ======================================================
@@ -129,3 +131,31 @@ def search_music(request):
         "albums": AlbumSerializer(albums, many=True).data,
         "songs": SongSerializer(songs, many=True).data,
     })
+
+
+# ======================================================
+# API: Polubienia
+# ======================================================
+
+# ❤️ LIKE
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def like_song(request, song_id):
+
+    song = get_object_or_404(Song, id=song_id)
+
+    song.liked_by.add(request.user)
+
+    return Response({"status": "liked"})
+
+
+# 💔 UNLIKE
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def unlike_song(request, song_id):
+
+    song = get_object_or_404(Song, id=song_id)
+
+    song.liked_by.remove(request.user)
+
+    return Response({"status": "unliked"})
