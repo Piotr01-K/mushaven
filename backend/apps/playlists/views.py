@@ -1,5 +1,5 @@
 from .permissions import IsPlaylistOwner
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 
 from rest_framework import viewsets
 
@@ -21,7 +21,24 @@ class PlaylistViewSet(viewsets.ModelViewSet):
 
     serializer_class = PlaylistSerializer
 
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    # kto może działać
+    permission_classes = [IsAuthenticated, IsPlaylistOwner]
+
+    # jakie dane widzi
+    def get_queryset(self):
+        return Playlist.objects.filter(creator=self.request.user)
+
+    def get_permissions(self):
+        """
+        Dynamiczne permissions:
+        - każdy może przeglądać (GET)
+        - tylko właściciel może modyfikować
+        """
+
+        if self.action in ["list", "retrieve"]:
+            return [IsAuthenticatedOrReadOnly()]
+
+        return [IsAuthenticated(), IsPlaylistOwner()]
 
     def perform_create(self, serializer):
         serializer.save(creator=self.request.user)     # automatycznie przypisuje użytkownika
@@ -76,6 +93,14 @@ class PlaylistSongViewSet(viewsets.ModelViewSet):
     queryset = PlaylistSong.objects.all()
 
     serializer_class = PlaylistSongSerializer
+    # kto może działać
+    permission_classes = [IsAuthenticated, IsPlaylistOwner]
+
+    # widzi tylko swoje dane
+    def get_queryset(self):
+        return PlaylistSong.objects.filter(
+        playlist__creator=self.request.user
+    )
 
     @action(detail=True, methods=["delete"], url_path="remove")     # usuwanie utworu z playlisty
     def remove(self, request, pk=None):
