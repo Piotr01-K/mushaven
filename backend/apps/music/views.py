@@ -86,25 +86,24 @@ class SongViewSet(viewsets.ModelViewSet):
 @api_view(["GET"])
 def top_songs(request):
     """
-    Zwraca listę najpopularniejszych piosenek.
-
-    Popularność = ile razy piosenka została dodana do playlist.
+    Top songs na podstawie lajków
     """
 
     songs = (
-        PlaylistSong.objects
-        .values("song__title")
-        .annotate(count=Count("song"))
+        Song.objects
+        .annotate(count=Count("liked_by", distinct=True))
         .order_by("-count")[:10]
     )
 
-    result = [
-        {"title": item["song__title"], "count": item["count"]}
-        for item in songs
+    data = [
+        {
+            "title": song.title,
+            "count": song.count
+        }
+        for song in songs
     ]
 
-    return Response(result)
-
+    return Response(data)
 
 @api_view(["GET"])
 def recommendations(request, song_id):

@@ -832,7 +832,7 @@ function App() {
       <ul style={{paddingLeft:"15px"}}>
         {topSongs.map((song, index) => (
           <li key={index}>
-            {song.title} ({song.likes_count || 0})
+            {song.title} ({song.count})
           </li>
         ))}
       </ul>
