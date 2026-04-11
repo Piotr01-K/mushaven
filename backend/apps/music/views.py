@@ -181,3 +181,13 @@ def unlike_song(request, song_id):
     song.liked_by.remove(request.user)
 
     return Response({"status": "unliked"})
+
+# ======================================================
+# API: Genres
+# ======================================================
+
+@api_view(["GET"])
+def genres_list(request):
+    genres = Genre.objects.all()
+    serializer = GenreSerializer(genres, many=True)
+    return Response(serializer.data)

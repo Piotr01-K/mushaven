@@ -19,6 +19,9 @@ function App() {
   const [selectedPlaylist, setSelectedPlaylist] = useState(null)    // tworzy zmienną React
   const [registerUsername, setRegisterUsername] = useState("")     // dane do rejestracji użytkownika
   const [registerPassword, setRegisterPassword] = useState("")      // dane do rejestracji użytkownika
+  const [genres, setGenres] = useState([])
+  const [selectedGenre, setSelectedGenre] = useState(null)
+
 
   // Funkcja pobierająca utwory (możemy ją wywołać kiedy chcemy)
   const fetchSongs = () => {
@@ -293,6 +296,10 @@ function App() {
     fetch("http://localhost:8000/api/stats/")
       .then(res => res.json())
       .then(data => setStats(data));
+
+    fetch("http://localhost:8000/api/music/genres/")
+      .then(res => res.json())
+      .then(data => setGenres(data));
 
     fetch("http://localhost:8000/api/music/artists/")
       .then(res => res.json())
@@ -681,6 +688,25 @@ function App() {
     )}
   
       
+      <h2>Genres</h2>
+
+      <div style={{ marginBottom: "10px" }}>
+        {genres.map(genre => (
+          <button
+            key={genre.id}
+            onClick={() => setSelectedGenre(genre.id)}
+            style={{
+              margin: "5px",
+              background: selectedGenre === genre.id ? "#00bcd4" : "#222",
+              color: "white"
+            }}
+          >
+            {genre.name}
+          </button>
+        ))}
+      </div>
+
+
        <h2>Artists</h2>
 
       <div
@@ -691,7 +717,12 @@ function App() {
           marginBottom: "30px"
         }}
       >
-        {artists.map(artist => (
+        {artists
+          .filter(artist =>
+            !selectedGenre || artist.genre === selectedGenre
+          )
+          .map(artist => (
+
           <div
             key={artist.id}
 
