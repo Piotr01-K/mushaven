@@ -8,7 +8,7 @@ from .models import Genre, Artist, Album, Song
 from .serializers import GenreSerializer, ArtistSerializer, AlbumSerializer, SongSerializer
 from django.db.models import Count, Q
 
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 
 from apps.playlists.models import PlaylistSong
@@ -54,6 +54,29 @@ class SongViewSet(viewsets.ModelViewSet):
     queryset = Song.objects.all()
 
     serializer_class = SongSerializer
+
+    # ❤️ LIKE / UNLIKE
+    @action(detail=True, methods=["post"])
+    def like(self, request, pk=None):
+        """
+        Toggle like:
+        - jeśli user już polubił → usuń
+        - jeśli nie → dodaj
+        """
+        song = self.get_object()
+        user = request.user
+
+        if user in song.liked_by.all():
+            song.liked_by.remove(user)
+            return Response({"status": "unliked"})
+        else:
+            song.liked_by.add(user)
+            return Response({"status": "liked"})
+        
+    def get_serializer_context(self):
+        context = super().get_serializer_context()  # bierze domyślny context DRF
+        context["request"] = self.request           # dodajemy request (ważne dla is_liked)
+        return context
 
 
 # ======================================================

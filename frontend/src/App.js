@@ -20,6 +20,33 @@ function App() {
   const [registerUsername, setRegisterUsername] = useState("")     // dane do rejestracji użytkownika
   const [registerPassword, setRegisterPassword] = useState("")      // dane do rejestracji użytkownika
 
+  // Funkcja pobierająca utwory (możemy ją wywołać kiedy chcemy)
+  const fetchSongs = () => {
+
+    if (!token) {
+      console.log("Brak tokena — nie pobieram songs")
+      return
+    }
+
+    fetch("http://localhost:8000/api/music/songs/", {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log("SONGS:", data)
+
+        if (Array.isArray(data)) {
+          setSongs(data)
+        } else {
+          console.error("NOT ARRAY:", data)
+          setSongs([])   // zabezpieczenie
+        }
+      })
+      .catch(error => console.error("Error loading songs:", error))
+  }
+
   const handleLogin = () => {
 
     fetch("http://localhost:8000/auth/jwt/create/", {
@@ -102,6 +129,40 @@ function App() {
         alert("Ten utwór już jest w playliście ⚠️")
         console.error(err)
       })
+  }
+
+
+      // ❤️ LIKE / UNLIKE SONG
+  const handleLike = (songId) => {
+
+    if (!token) {
+      alert("Zaloguj się!")
+      return
+    }
+
+    fetch(`http://localhost:8000/api/music/songs/${songId}/like/`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log("LIKE:", data)
+
+      // feedback dla użytkownika
+      if (data.status === "liked") {
+        alert("Polubiono ❤️")
+      } else {
+        alert("Usunięto polubienie 💔")
+      }
+
+        // odświeżamy dane!
+        fetchSongs()
+        fetchTopSongs()
+        fetchPlaylists()
+      })
+      .catch(err => console.error(err))
   }
 
 
@@ -238,16 +299,13 @@ function App() {
       .then(data => setArtists(data))
       .catch(error => console.error("Error loading artists:", error));
 
-    fetch("http://localhost:8000/api/music/songs/")
-      .then(res => res.json())
-      .then(data => setSongs(data))
-      .catch(error => console.error("Error loading songs:", error));
+    fetchSongs()
 
     fetch("http://localhost:8000/api/music/albums/")
       .then(res => res.json())
       .then(data => setAlbums(data));
 
-    }, []);
+    }, [token]);
 
       const fetchPlaylists = useCallback(() => {
 
@@ -741,18 +799,25 @@ function App() {
               .filter(song => Number(song.album) === selectedAlbum)     // pokaż utory z albumu
               .map(song => (
                 <li key={song.id}>
-                  {song.title}
+                  {song.title} ({song.likes_count || 0})
                   
+                  {/* ❤️ LIKE */}
                   <button
-                    // onClick={() => handleAddToPlaylist(song.id)}
-                       onClick={() => {
-                         console.log("CLICK", song.id)
-                         handleAddToPlaylist(song.id)
-                       }}
-
+                    onClick={() => handleLike(song.id)}
                     style={{ marginLeft: "10px" }}
                   >
-                     ➕
+                    {song.is_liked ? "❤️" : "🤍"}
+                  </button>
+
+                  {/* ➕ ADD TO PLAYLIST */}
+                  <button
+                    onClick={() => {
+                      console.log("CLICK", song.id)
+                      handleAddToPlaylist(song.id)
+                    }}
+                    style={{ marginLeft: "5px" }}
+                  >
+                    ➕
                   </button>
 
                 </li>
@@ -767,7 +832,7 @@ function App() {
       <ul style={{paddingLeft:"15px"}}>
         {topSongs.map((song, index) => (
           <li key={index}>
-            {song.title} ({song.count})
+            {song.title} ({song.likes_count || 0})
           </li>
         ))}
       </ul>
