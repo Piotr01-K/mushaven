@@ -50,6 +50,17 @@ This project is developed as part of learning modern backend + frontend + DevOps
 - login from frontend
 - token stored in localStorage
 
+## Features (updated)
+
+- User authentication (JWT)
+- Playlist management (create, add/remove songs)
+- Top songs ranking (based on likes)
+- Like / Unlike system
+- Genre filtering
+- Search functionality
+- REST API with Django DRF
+- React frontend with dynamic updates
+
 ---
 
 # Tech Stack
@@ -122,6 +133,7 @@ mushaven/
 /api/music/search/?q=...
 /api/playlists/
 /api/stats/
+/api/genres/
 
 
 # API documentation:
@@ -203,11 +215,11 @@ feature expansion
 # Roadmap:
 music recommendations
 popularity ranking
-likes system
+
 album covers
 UI upgrade (Tailwind / MUI)
 PostgreSQL migration
-deployment (AWS / Docker)
+deployment (render.com/ AWS / Docker)
 
 Author:
 
