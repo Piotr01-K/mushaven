@@ -23,5 +23,9 @@ class IsPlaylistOwner(BasePermission):
         Sprawdzamy czy creator playlisty
         jest tym samym użytkownikiem.
         """
+         # jeśli to jest PlaylistSong → idziemy przez playlist
+        if hasattr(obj, "playlist"):
+            return obj.playlist.creator == request.user
 
+        #  jeśli to jest Playlist
         return obj.creator == request.user

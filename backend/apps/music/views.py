@@ -8,10 +8,12 @@ from .models import Genre, Artist, Album, Song
 from .serializers import GenreSerializer, ArtistSerializer, AlbumSerializer, SongSerializer
 from django.db.models import Count, Q
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 
 from apps.playlists.models import PlaylistSong
+from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
 
 
 # ======================================================
@@ -53,6 +55,29 @@ class SongViewSet(viewsets.ModelViewSet):
 
     serializer_class = SongSerializer
 
+    # ❤️ LIKE / UNLIKE
+    @action(detail=True, methods=["post"])
+    def like(self, request, pk=None):
+        """
+        Toggle like:
+        - jeśli user już polubił → usuń
+        - jeśli nie → dodaj
+        """
+        song = self.get_object()
+        user = request.user
+
+        if user in song.liked_by.all():
+            song.liked_by.remove(user)
+            return Response({"status": "unliked"})
+        else:
+            song.liked_by.add(user)
+            return Response({"status": "liked"})
+        
+    def get_serializer_context(self):
+        context = super().get_serializer_context()  # bierze domyślny context DRF
+        context["request"] = self.request           # dodajemy request (ważne dla is_liked)
+        return context
+
 
 # ======================================================
 # API: Top songs
@@ -61,20 +86,24 @@ class SongViewSet(viewsets.ModelViewSet):
 @api_view(["GET"])
 def top_songs(request):
     """
-    Zwraca listę najpopularniejszych piosenek.
-
-    Popularność = ile razy piosenka została dodana do playlist.
+    Top songs na podstawie lajków
     """
 
     songs = (
-        PlaylistSong.objects
-        .values("song__title")
-        .annotate(count=Count("song"))
+        Song.objects
+        .annotate(count=Count("liked_by", distinct=True))
         .order_by("-count")[:10]
     )
 
-    return Response(songs)
+    data = [
+        {
+            "title": song.title,
+            "count": song.count
+        }
+        for song in songs
+    ]
 
+    return Response(data)
 
 @api_view(["GET"])
 def recommendations(request, song_id):
@@ -124,3 +153,41 @@ def search_music(request):
         "albums": AlbumSerializer(albums, many=True).data,
         "songs": SongSerializer(songs, many=True).data,
     })
+
+
+# ======================================================
+# API: Polubienia
+# ======================================================
+
+# ❤️ LIKE
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def like_song(request, song_id):
+
+    song = get_object_or_404(Song, id=song_id)
+
+    song.liked_by.add(request.user)
+
+    return Response({"status": "liked"})
+
+
+# 💔 UNLIKE
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def unlike_song(request, song_id):
+
+    song = get_object_or_404(Song, id=song_id)
+
+    song.liked_by.remove(request.user)
+
+    return Response({"status": "unliked"})
+
+# ======================================================
+# API: Genres
+# ======================================================
+
+@api_view(["GET"])
+def genres_list(request):
+    genres = Genre.objects.all()
+    serializer = GenreSerializer(genres, many=True)
+    return Response(serializer.data)

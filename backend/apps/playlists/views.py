@@ -1,10 +1,15 @@
 from .permissions import IsPlaylistOwner
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 
 from rest_framework import viewsets
 
 from .models import Playlist, PlaylistSong
 from .serializers import PlaylistSerializer, PlaylistSongSerializer
+
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Playlist, PlaylistSong
 
 
 # ======================================================
@@ -16,8 +21,28 @@ class PlaylistViewSet(viewsets.ModelViewSet):
 
     serializer_class = PlaylistSerializer
 
-    permission_classes = [IsAuthenticatedOrReadOnly]
-   
+    # kto może działać
+    permission_classes = [IsAuthenticated, IsPlaylistOwner]
+
+    # jakie dane widzi
+    def get_queryset(self):
+        return Playlist.objects.filter(creator=self.request.user)
+
+    def get_permissions(self):
+        """
+        Dynamiczne permissions:
+        - każdy może przeglądać (GET)
+        - tylko właściciel może modyfikować
+        """
+
+        if self.action in ["list", "retrieve"]:
+            return [IsAuthenticatedOrReadOnly()]
+
+        return [IsAuthenticated(), IsPlaylistOwner()]
+
+    def perform_create(self, serializer):
+        serializer.save(creator=self.request.user)     # automatycznie przypisuje użytkownika
+  
     def perform_create(self, serializer):
         """
         Ta metoda jest wywoływana gdy ktoś tworzy playlistę.
@@ -38,6 +63,27 @@ class PlaylistViewSet(viewsets.ModelViewSet):
 
         return super().get_permissions()
 
+    @action(detail=True, methods=["post"], url_path="add-song")   # dodawanie playlist song
+    def add_song(self, request, pk=None):
+        playlist = self.get_object()
+        song_id = request.data.get("song_id")
+
+        if not song_id:
+            return Response({"error": "song_id required"}, status=400)
+
+        last_song = playlist.playlistsong_set.order_by("-order").first()
+
+        next_order = last_song.order + 1 if last_song else 1
+
+        PlaylistSong.objects.create(
+            playlist=playlist,
+            song_id=song_id,
+            order=next_order
+        )
+
+
+        return Response({"status": "song added"})
+
 
 # ======================================================
 # API: PlaylistSong
@@ -47,3 +93,24 @@ class PlaylistSongViewSet(viewsets.ModelViewSet):
     queryset = PlaylistSong.objects.all()
 
     serializer_class = PlaylistSongSerializer
+    # kto może działać
+    permission_classes = [IsAuthenticated, IsPlaylistOwner]
+
+    # widzi tylko swoje dane
+    def get_queryset(self):
+        return PlaylistSong.objects.filter(
+        playlist__creator=self.request.user
+    )
+
+    @action(detail=True, methods=["delete"], url_path="remove")     # usuwanie utworu z playlisty
+    def remove(self, request, pk=None):
+        """
+        Usuwa konkretny element PlaylistSong (czyli utwór z playlisty)
+        pk = ID wpisu PlaylistSong (NIE song_id!)
+        """
+        obj = self.get_object()
+        obj.delete()
+        return Response(
+            {"status": "song removed"},
+            status=status.HTTP_204_NO_CONTENT
+        )

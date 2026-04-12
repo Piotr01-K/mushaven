@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 
 function App() {
 
@@ -14,8 +14,41 @@ function App() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [token, setToken] = useState(null)
-  const [playlists, setPlaylists] = useState([])
+  const [playlists, setPlaylists] = useState([])    //przechowuje klikniętą listę
   const [newPlaylistName, setNewPlaylistName] = useState("")
+  const [selectedPlaylist, setSelectedPlaylist] = useState(null)    // tworzy zmienną React
+  const [registerUsername, setRegisterUsername] = useState("")     // dane do rejestracji użytkownika
+  const [registerPassword, setRegisterPassword] = useState("")      // dane do rejestracji użytkownika
+  const [genres, setGenres] = useState([])
+  const [selectedGenre, setSelectedGenre] = useState(null)
+
+
+  // Funkcja pobierająca utwory (możemy ją wywołać kiedy chcemy)
+  const fetchSongs = () => {
+
+    if (!token) {
+      console.log("Brak tokena — nie pobieram songs")
+      return
+    }
+
+    fetch("http://localhost:8000/api/music/songs/", {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log("SONGS:", data)
+
+        if (Array.isArray(data)) {
+          setSongs(data)
+        } else {
+          console.error("NOT ARRAY:", data)
+          setSongs([])   // zabezpieczenie
+        }
+      })
+      .catch(error => console.error("Error loading songs:", error))
+  }
 
   const handleLogin = () => {
 
@@ -42,13 +75,111 @@ function App() {
       .catch(error => console.error("Login error:", error))
   }
 
+  const handleLogout = () => {
+    setToken(null)                // usuwa token z Reacta
+    localStorage.removeItem("token")  // usuwa token z pamięci przeglądarki
+
+    setPlaylists([])              // czyścimy dane użytkownika
+    setSelectedPlaylist(null)
+
+    alert("Wylogowano")
+  }
+
+  const handleAddToPlaylist = (songId) => {
+
+    // Blokada gdy brak loginu
+    if (!token) {
+      alert("Musisz być zalogowany ❗")
+      return
+    }   
+
+    if (!playlists.length) {
+      alert("Brak playlist")
+      return
+    }
+
+    if (!selectedPlaylist) {
+      alert("Najpierw wybierz playlistę!")
+      return
+    }
+
+    const playlistId = selectedPlaylist.id
+
+
+    fetch(`http://localhost:8000/api/playlists/playlists/${playlistId}/add-song/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        song_id: songId
+      })
+    })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error("Duplicate")
+        }
+        return res.json()
+      })
+      .then(data => {
+        console.log("Added:", data)
+        alert("Dodano do playlisty ✅")
+        fetchPlaylists()   // dzięki temu React pobiera "świeże" dane
+        fetchTopSongs()    // dzięki temu React pobiera "świeże" dane
+      })
+      .catch(err => {
+        alert("Ten utwór już jest w playliście ⚠️")
+        console.error(err)
+      })
+  }
+
+
+      // ❤️ LIKE / UNLIKE SONG
+  const handleLike = (songId) => {
+
+    if (!token) {
+      alert("Zaloguj się!")
+      return
+    }
+
+    fetch(`http://localhost:8000/api/music/songs/${songId}/like/`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log("LIKE:", data)
+
+      // feedback dla użytkownika
+      if (data.status === "liked") {
+        alert("Polubiono ❤️")
+      } else {
+        alert("Usunięto polubienie 💔")
+      }
+
+        // odświeżamy dane!
+        fetchSongs()
+        fetchTopSongs()
+        fetchPlaylists()
+      })
+      .catch(err => console.error(err))
+  }
+
+
   // umożliwia tworzenie i edycję playlists w React
   const handleCreatePlaylist = () => {
+  
+  // dodawania do playlisty  
+  
     // blokada pustych nazw
     if (!newPlaylistName.trim()) {
       alert("Podaj nazwę playlisty!")
       return
     }
+
 
     fetch("http://localhost:8000/api/playlists/playlists/", {
       method: "POST",
@@ -60,24 +191,100 @@ function App() {
         name: newPlaylistName
       })
     })
-      .then(res => res.json())
+      
+      .then(res => {
+        console.log("CREATE STATUS:", res.status)   // Obsługuje statusy HTTP (200 / 400 / 401 / 403) + odpowiedź backendu
+
+        if (!res.ok) {
+          throw new Error("Create failed")   // zatrzymuje przy 400
+        }
+
+        return res.json()
+      })
+
       .then(data => {
         console.log("CREATED:", data)
 
-        // dodajemy nową playlistę do listy
-       setPlaylists(prev => [
-         ...prev,
-         {
-           ...data,
-           name: data.name || newPlaylistName
-         }
-      ])
-
-      // czyścimy input
+        
+        // czyścimy input
         setNewPlaylistName("")
         
+        fetchPlaylists()
+        fetchTopSongs()
       })
       .catch(error => console.error("Create error:", error))
+  }
+    //  wysyła del do backendu, usuwa utwór z Palylist i odświeża Playlistę.
+    const handleRemoveFromPlaylist = (playlistSongId) => {
+
+      // Blokada gdy brak loginu
+      if (!token) {
+        alert("Musisz być zalogowany ❗")
+        return
+      }
+
+      console.log("DELETE ID:", playlistSongId)
+
+    fetch(`http://localhost:8000/api/playlists/playlist-songs/${playlistSongId}/remove/`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    })
+      
+    .then(res => {
+      console.log("DELETE STATUS:", res.status)   // debugowanie
+
+      if (res.status === 204) {
+        return null   // brak JSON
+      }
+
+      return res.json()
+    })
+    .then(() => {
+      alert("Usunięto z playlisty ❌")
+
+      // odśwież dane z backendu
+      fetchPlaylists()
+      fetchTopSongs()
+    })
+      .catch(err => console.error(err))
+  }
+
+    // rejestracja użytkownika
+    // wysyła dane do Django (Djoser)
+  const handleRegister = () => {
+
+    fetch("http://localhost:8000/auth/users/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        username: registerUsername,
+        password: registerPassword,
+        re_password: registerPassword   // to wymagane jest przez Djoser
+      })
+    })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error("Register failed")
+        }
+        return res.json()
+      })
+      .then(data => {
+        console.log("REGISTERED:", data)
+
+        alert("Rejestracja udana ✅")
+
+        // czyścimy pola formularza
+        setRegisterUsername("")
+        setRegisterPassword("")
+      })
+      .catch(err => {
+        alert("Błąd rejestracji ❌")
+        console.error(err)
+      })
   }
 
   useEffect(() => {
@@ -90,25 +297,26 @@ function App() {
       .then(res => res.json())
       .then(data => setStats(data));
 
+    fetch("http://localhost:8000/api/music/genres/")
+      .then(res => res.json())
+      .then(data => setGenres(data));
+
     fetch("http://localhost:8000/api/music/artists/")
       .then(res => res.json())
       .then(data => setArtists(data))
       .catch(error => console.error("Error loading artists:", error));
 
-    fetch("http://localhost:8000/api/music/songs/")
-      .then(res => res.json())
-      .then(data => setSongs(data))
-      .catch(error => console.error("Error loading songs:", error));
+    fetchSongs()
 
     fetch("http://localhost:8000/api/music/albums/")
       .then(res => res.json())
       .then(data => setAlbums(data));
 
-    }, []);
+    }, [token]);
 
-  useEffect(() => {
+      const fetchPlaylists = useCallback(() => {
 
-    if (!token) return;  // 🔥 kluczowe
+    if (!token) return;
 
     fetch("http://localhost:8000/api/playlists/playlists/", {
       headers: {
@@ -118,45 +326,70 @@ function App() {
       .then(res => res.json())
       .then(data => {
         console.log("PLAYLISTS:", data)
-        // zabezpieczenie przed wyrzuceniem błędu przy załadowaniu React
+
         if (Array.isArray(data)) {
-          setPlaylists(data)   // zapisuje playlisty w React
+          setPlaylists(data)
+
+          // automatycznie aktualizuje wybraną listę
+          if (selectedPlaylist) {
+            const updated = data.find(p => p.id === selectedPlaylist.id)
+          // jeśli coś się zmieniło to:
+            if (updated) {
+            setSelectedPlaylist(updated)
+          }
+         }
         } else {
           console.error("NOT ARRAY:", data)
-          setPlaylists([])   // reset żeby nie crashowało
+          setPlaylists([])
         }
-     })
+      })
       .catch(error => console.error("Playlist error:", error))
+  }, [token])
 
-  }, [token]);   // 🔥 reaguje na zmianę tokena
+    const fetchTopSongs = () => {
+      fetch("http://localhost:8000/api/music/top-songs/")
+        .then(res => res.json())
+        .then(data => {
+          console.log("TOP SONGS:", data)
+          setTopSongs(data)
+        })
+        .catch(err => console.error(err))
+    }
 
-    // funkcja wywoływana gdy klikniemy przycisk SEARCH
-    //const handleSearch = () => {
+  useEffect(() => {
+      if (token) {
+        fetchPlaylists()
+      }
+    }, [token])
 
-    // jeśli pole jest puste – nie wysyłamy zapytania
-    //if (!searchQuery.trim()) return;
+  useEffect(() => {
+    fetchTopSongs()
+  }, []) 
 
-    // wysyłamy request do backendu
-    //fetch(`http://localhost:8000/api/music/search/?q=${searchQuery}`)
-    //  .then(res => res.json())
-    //  .then(data => {
+  useEffect(() => {
+  
 
-         // łączymy wszystkie wyniki w jedną listę
-    //     const combinedResults = [
-    //       ...data.artists,
-    //       ...data.albums,
-    //       ...data.songs
-    //     ];
+      if (!selectedPlaylist) return;
 
-         // zapisujemy wyniki w stanie React
-    //      setSearchResults(combinedResults);
+      const updated = playlists.find(p => p.id === selectedPlaylist.id)
 
-    //  })
-    //  .catch(error => console.error("Search error:", error));
-    //};
+      if (updated) {
+         setSelectedPlaylist(updated)
+      }
+
+    }, [playlists])
+
+  useEffect(() => {
+    fetch("http://localhost:8000/api/music/top-songs/")
+      .then(res => res.json())
+      .then(data => {
+        console.log("TOP SONGS:", data)
+        setTopSongs(data)
+      })
+      .catch(err => console.error(err))
+  }, [])
 
 
-    // LIVE SEARCH – uruchamia wyszukiwanie gdy zmienia się tekst - przycisk wyszukiwania nie jest potrzebny!
     useEffect(() => {
 
       // nie wysyłamy requestów dla pustego pola
@@ -220,6 +453,25 @@ function App() {
     <div style={{marginBottom:"30px"}}>
       <h2>Login</h2>
 
+      <h3>Register</h3>
+
+      <input
+        placeholder="username"
+        value={registerUsername}
+        onChange={(e) => setRegisterUsername(e.target.value)}
+      />
+
+      <input
+        type="password"
+        placeholder="password"
+        value={registerPassword}
+        onChange={(e) => setRegisterPassword(e.target.value)}
+      />
+
+      <button onClick={handleRegister}>
+        Register
+      </button>
+
       <input
         type="text"
         placeholder="Username"
@@ -238,7 +490,15 @@ function App() {
       Login
     </button>
 
-    {token && <p style={{color:"lightgreen"}}>Logged in ✅</p>}
+    {token && (       // walidacja: pokazuje przycisk tylko gdy użytkownik jest zalogowany
+      <>
+        <p style={{color:"lightgreen"}}>Logged in ✅</p>
+
+        <button onClick={handleLogout} style={{marginTop: "5px"}}>
+          Logout
+        </button>
+      </>
+    )}
   
   </div>
      {/* PLAYLISTY */}
@@ -276,16 +536,34 @@ function App() {
 
         <h2>Your Playlists</h2>
 
+        {selectedPlaylist && (
+          <p style={{color:"#38bdf8"}}>
+            Wybrana: {selectedPlaylist.name}    {/* pokazuje użytkownikowi, do której playlisty dodaje */}
+          </p>
+        )}
+
        <ul style={{listStyle:"none", padding:0}}>
           {Array.isArray(playlists) && playlists.map(p => (
             <li
               key={p.id}
-              style={{
-                background:"#1e293b",
+                              
+
+                onClick={() => setSelectedPlaylist(p)}   // zapisuje playlistę
+
+                style={{
+                  cursor:"pointer",
+
+                  background: selectedPlaylist?.id === p.id    // sprawdza czy ta ta sama lista
+                    ? "#334155"   // aktywna (kliknięta)
+                    : "#1e293b",
+
                 padding:"8px",
                 marginBottom:"6px",
                 borderRadius:"6px",
-                border:"1px solid #334155"
+                border: selectedPlaylist?.id === p.id     // niebieska ramka jeśli zostaje wybrany
+                  ? "2px solid #38bdf8"
+                  : "1px solid #334155",
+
               }}
             >
              {p.name || "Unnamed playlist"}
@@ -293,11 +571,42 @@ function App() {
          ))}
        </ul>
 
+
+      {selectedPlaylist && (
+      <div style={{marginTop:"20px"}}>
+
+        <h3>Playlist Songs</h3>
+
+        <ul>
+          {selectedPlaylist.songs.map(item => {
+
+            console.log("ITEM:", item)
+
+            return (
+              <li key={item.id}>
+                {item.song_title}
+
+              <button
+                onClick={() => handleRemoveFromPlaylist(item.id)}
+                style={{ marginLeft: "10px" }}
+              >
+                ❌
+              </button>
+
+            </li>
+            )
+          })}
+        </ul>
+
+    
      </div>
     )}
   </div>
+  
+  )}  
+</div>
 
-      {/* ŚRODKOWA KOLUMNA – wyszukiwarka */}
+    {/* ŚRODKOWA KOLUMNA – wyszukiwarka */}
       <div>
 
       <h2 style={{color:"#38bdf8"}}>Search</h2>
@@ -379,6 +688,25 @@ function App() {
     )}
   
       
+      <h2>Genres</h2>
+
+      <div style={{ marginBottom: "10px" }}>
+        {genres.map(genre => (
+          <button
+            key={genre.id}
+            onClick={() => setSelectedGenre(genre.id)}
+            style={{
+              margin: "5px",
+              background: selectedGenre === genre.id ? "#00bcd4" : "#222",
+              color: "white"
+            }}
+          >
+            {genre.name}
+          </button>
+        ))}
+      </div>
+
+
        <h2>Artists</h2>
 
       <div
@@ -389,7 +717,12 @@ function App() {
           marginBottom: "30px"
         }}
       >
-        {artists.map(artist => (
+        {artists
+          .filter(artist =>
+            !selectedGenre || artist.genre === selectedGenre
+          )
+          .map(artist => (
+
           <div
             key={artist.id}
 
@@ -497,7 +830,27 @@ function App() {
               .filter(song => Number(song.album) === selectedAlbum)     // pokaż utory z albumu
               .map(song => (
                 <li key={song.id}>
-                  {song.title}
+                  {song.title} ({song.likes_count || 0})
+                  
+                  {/* ❤️ LIKE */}
+                  <button
+                    onClick={() => handleLike(song.id)}
+                    style={{ marginLeft: "10px" }}
+                  >
+                    {song.is_liked ? "❤️" : "🤍"}
+                  </button>
+
+                  {/* ➕ ADD TO PLAYLIST */}
+                  <button
+                    onClick={() => {
+                      console.log("CLICK", song.id)
+                      handleAddToPlaylist(song.id)
+                    }}
+                    style={{ marginLeft: "5px" }}
+                  >
+                    ➕
+                  </button>
+
                 </li>
               ))}
           </ul>
@@ -508,9 +861,9 @@ function App() {
       <h2>Top Songs</h2>
 
       <ul style={{paddingLeft:"15px"}}>
-        {topSongs.map(song => (
-          <li key={song.id}>
-            {song.title}
+        {topSongs.map((song, index) => (
+          <li key={index}>
+            {song.title} ({song.count})
           </li>
         ))}
       </ul>

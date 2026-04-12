@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.auth.models import User
 
 # ======================================================
 # MODEL: Genre
@@ -72,6 +72,13 @@ class Song(models.Model):
         Album,
         on_delete=models.CASCADE,
         related_name="songs"
+    )
+
+     # ❤️ LIKE SYSTEM (ulubione utwory użytkowników)
+    liked_by = models.ManyToManyField(
+        User,
+        related_name="liked_songs",
+        blank=True
     )
 
     def __str__(self):

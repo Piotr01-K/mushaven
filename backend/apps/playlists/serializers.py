@@ -1,15 +1,18 @@
 from rest_framework import serializers
 from .models import Playlist, PlaylistSong
-
+from apps.music.serializers import SongSerializer
 
 # ======================================================
 # SERIALIZER: PlaylistSong
 # ======================================================
 class PlaylistSongSerializer(serializers.ModelSerializer):
 
+    # pobieramy tytuł utworu z powiązanego modelu Song
+    song_title = serializers.CharField(source="song.title", read_only=True)
+
     class Meta:
         model = PlaylistSong
-        fields = ["id", "name", "creator", "songs"]
+        fields = ["id", "playlist", "song", "song_title"]
 
 
 # ======================================================
@@ -26,3 +29,9 @@ class PlaylistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Playlist
         fields = ["id", "name", "creator", "songs"]
+        read_only_fields = ["creator"]
+
+    def get_songs(self, obj):
+        playlist_songs = obj.playlistsong_set.all()
+        songs = [ps.song for ps in playlist_songs]
+        return SongSerializer(songs, many=True).data
